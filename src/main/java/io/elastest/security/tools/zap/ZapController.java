@@ -93,7 +93,7 @@ public class ZapController {
     	return scanResponse;
     }
     
-	public void startScanAfterSpider(Long spiderScanId, ScanRequest scanRequest) {
+	private void startScanAfterSpider(Long spiderScanId, ScanRequest scanRequest) {
 		ScanStatus status = new ScanStatus();
 		
     	while (!"100".equals(status.getProgress())) {
