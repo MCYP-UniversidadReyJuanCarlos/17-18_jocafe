@@ -1,4 +1,4 @@
-package io.elastest.security.tools.zap;
+package io.elastest.security.tools.arachni;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.*;
 import static io.restassured.module.mockmvc.matcher.RestAssuredMockMvcMatchers.*;
@@ -10,17 +10,17 @@ import io.elastest.security.model.ScanRequest;
 import io.restassured.http.ContentType;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 
-public class ZapControllerTests {
+public class ArachniControllerTests {
 	
-	private static final String TOOL_PATH = "/tools/zap/scans/";
-	
-	private static final String VULNERABLE_APP_URL = "http://testphp.vulnweb.com";
-	
+	private static final String TOOL_PATH = "/tools/arachni/scans/";
 
-    @Test
+	private static final String VULNERABLE_APP_URL = "http://testphp.vulnweb.com";
+
+	
+	@Test
     public void launchAndControlScan() throws Exception {
 
-    	RestAssuredMockMvc.standaloneSetup(new ZapController());
+    	RestAssuredMockMvc.standaloneSetup(new ArachniController());
     	
     	// Start a new scan
     	String scanId =
@@ -49,7 +49,7 @@ public class ZapControllerTests {
 		then().
 			statusCode(200).
 			body("status", isA(String.class), "progress", isA(String.class)).and().
-			body("status", containsString("PAUSED"));
+			body("status", containsString("PAUSING"));
 	
     	// Resume scan
     	when().

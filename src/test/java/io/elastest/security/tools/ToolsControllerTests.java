@@ -17,8 +17,6 @@ public class ToolsControllerTests {
 
     	RestAssuredMockMvc.standaloneSetup(new ToolsController());
     	
-//    	given().
-//    		param("name", "Johan").
     	when().
         	get("/tools").
         then().
