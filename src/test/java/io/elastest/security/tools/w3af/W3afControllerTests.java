@@ -43,8 +43,11 @@ public class W3afControllerTests {
     		statusCode(200).
     		body("status", isA(String.class), "progress", isA(String.class));
     	
-    	// Pause scan
-    	when().
+
+    	// W3af can't pause scans
+/*    	
+		// Pause scan
+		when().
 			put(TOOL_PATH + scanId + "/pause").
 		then().
 			statusCode(200).
@@ -57,7 +60,8 @@ public class W3afControllerTests {
 		then().
 			statusCode(200).
 			body("status", isA(String.class), "progress", isA(String.class));
-    	
+*/    	
+
     	// Get scan results
     	when().
     		get(TOOL_PATH + scanId + "/report").
