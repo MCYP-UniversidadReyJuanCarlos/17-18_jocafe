@@ -41,9 +41,8 @@ public class W3afController {
 	// fast_scan.pw3af
 	public static final String W3AF_PROFILE_FAST_SCAN = "fast_scan.pw3af";
 	
-    Logger logger = LoggerFactory.getLogger(this.getClass());
-
-	
+    
+	Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	RestTemplate restTemplate = new RestTemplate();
     
