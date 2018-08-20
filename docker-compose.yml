@@ -1,0 +1,21 @@
+version: "3"
+ 
+services:
+
+  zap:
+    image: owasp/zap2docker-stable:latest
+    command: zap.sh -daemon -host 0.0.0.0 -port 8081 -config api.addrs.addr.name=.* -config api.addrs.addr.regex=true -config api.disablekey=true
+
+  arachni:
+    image: ahannigan/docker-arachni
+    command: bin/arachni_rest_server --address 0.0.0.0
+
+  w3af:
+    image: andresriancho/w3af:develop
+    command: /home/w3af/w3af/w3af_api 0.0.0.0:5000
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+  

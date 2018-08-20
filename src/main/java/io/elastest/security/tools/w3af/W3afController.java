@@ -30,6 +30,8 @@ import io.elastest.security.tools.w3af.W3afScanAlert.OwaspTop10;
 @RequestMapping("/tools/w3af")
 public class W3afController {
 	
+	public static final String W3AF_SERVICE_URL = "http://w3af:5000/scans/";
+
 	public static final String W3AF_PROFILE_DIR = "w3af/profiles/";
 	
 	// OWASP_TOP10.pw3af
@@ -55,11 +57,11 @@ public class W3afController {
     	
     	// The current W3af REST API implementation does not allow users to run more than one concurrent scan.
     	// Get previous scans list to delete them
-    	W3afScanList scanList = restTemplate.getForObject("http://localhost:5000/scans/", W3afScanList.class);
+    	W3afScanList scanList = restTemplate.getForObject(W3AF_SERVICE_URL, W3afScanList.class);
     	for (String scanId : scanList.getScanIds()) {
         	logger.info("Delete previous W3af Scan: " + scanId);
         	// Delete old scan
-    		restTemplate.delete("http://localhost:5000/scans/" + scanId);
+    		restTemplate.delete(W3AF_SERVICE_URL + scanId);
     	}
 
     	// Start new scan
@@ -73,7 +75,7 @@ public class W3afController {
     	logger.info("W3af Scan Profile: " + profile);
 
     	HttpEntity<W3afScanRequest> request = new HttpEntity<>(w3afRequest);
-    	W3afScan w3afScan = restTemplate.postForObject("http://localhost:5000/scans/", request, W3afScan.class);
+    	W3afScan w3afScan = restTemplate.postForObject(W3AF_SERVICE_URL, request, W3afScan.class);
     	
     	logger.info("W3af Scan ID: " + w3afScan.getScanId());
     	
@@ -107,7 +109,7 @@ public class W3afController {
     @RequestMapping(value = "/scans/{scanId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanStatus getScanStatus(@PathVariable (required = true) String scanId) {
     	
-    	W3afScanStatus w3afStatus = restTemplate.getForObject("http://localhost:5000/scans/" + scanId + "/status",
+    	W3afScanStatus w3afStatus = restTemplate.getForObject(W3AF_SERVICE_URL + scanId + "/status",
     			W3afScanStatus.class);
     	
     	ScanStatus status = new ScanStatus();
@@ -150,12 +152,12 @@ public class W3afController {
     	scanReport.setProgress(scanStatus.getProgress());
     	scanReport.setStatus(scanStatus.getStatus());
     	
-    	W3afScanAlertList alertList = restTemplate.getForObject("http://localhost:5000/scans/" + scanId + "/kb",
+    	W3afScanAlertList alertList = restTemplate.getForObject(W3AF_SERVICE_URL + scanId + "/kb",
     			W3afScanAlertList.class);
     
     	for (String alertId : alertList.getAlertIds()) {
-    		W3afScanAlert w3afAlert = restTemplate.getForObject(
-    				"http://localhost:5000/scans/" + scanId + "/kb/" + alertId, W3afScanAlert.class);
+    		W3afScanAlert w3afAlert = restTemplate.getForObject(W3AF_SERVICE_URL + scanId + "/kb/" + alertId,
+    				W3afScanAlert.class);
     		
     		if (w3afAlert == null) {
     			continue;

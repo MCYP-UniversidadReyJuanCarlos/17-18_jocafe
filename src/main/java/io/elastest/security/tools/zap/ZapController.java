@@ -27,6 +27,8 @@ import io.elastest.security.model.ScanStatus;
 @RequestMapping("/tools/zap")
 public class ZapController {
 	
+	public static final String ZAP_SERVICE_URL = "http://zap:8081/JSON/";
+	
     private static final Long NOT_STARTED_ACTIVE_SCAN_ID = -1L;
 	
 	private static final int POLLING_SPIDER_STATUS_INTERVAL = 1000;
@@ -77,7 +79,7 @@ public class ZapController {
     	logger.info("ZAP Spider Scan: " + scanRequest.getUrl());
 
     	ZapScan spiderScan = restTemplate.getForObject(
-    			"http://localhost:8081/JSON/spider/action/scan/?url=" + scanRequest.getUrl(), ZapScan.class);
+    			ZAP_SERVICE_URL + "spider/action/scan/?url=" + scanRequest.getUrl(), ZapScan.class);
 
     	Long spiderScanId = spiderScan.getScanId();
     	logger.info("ZAP Spider Scan ID: " + spiderScanId);
@@ -114,7 +116,7 @@ public class ZapController {
     	logger.info("ZAP Active Scan: " + scanRequest.getUrl());
 
     	ZapScan zapScan = restTemplate.getForObject(
-    			"http://localhost:8081/JSON/ascan/action/scan/?url=" + scanRequest.getUrl(), ZapScan.class);
+    			ZAP_SERVICE_URL + "ascan/action/scan/?url=" + scanRequest.getUrl(), ZapScan.class);
     	
     	spiderScans.put(spiderScanId, zapScan.getScanId());
     	
@@ -125,7 +127,7 @@ public class ZapController {
     private ScanStatus getSpiderStatus(Long spiderScanId) {
     	ScanStatus spiderStatus = null;
 
-    	ZapScansList spiderScans = restTemplate.getForObject("http://localhost:8081/JSON/spider/view/scans/",
+    	ZapScansList spiderScans = restTemplate.getForObject(ZAP_SERVICE_URL + "spider/view/scans/",
     			ZapScansList.class);
     	
     	for (ZapScanStatus scanStatus : spiderScans.getScans()) {
@@ -161,7 +163,7 @@ public class ZapController {
     	}
     	
     	// else: Spider finished, status from related active scan...
-    	ZapScansList scans = restTemplate.getForObject("http://localhost:8081/JSON/ascan/view/scans/",
+    	ZapScansList scans = restTemplate.getForObject(ZAP_SERVICE_URL + "ascan/view/scans/",
     			ZapScansList.class);
     	
     	for (ZapScanStatus scanStatus : scans.getScans()) {
@@ -202,11 +204,11 @@ public class ZapController {
     	// Spider not finished yet
     	if (activeScanId == NOT_STARTED_ACTIVE_SCAN_ID) {
     		// Pause spider scan
-    		restTemplate.getForObject("http://localhost:8081/JSON/spider/action/pause/?scanId=" + spiderScanId, Object.class);
+    		restTemplate.getForObject(ZAP_SERVICE_URL + "spider/action/pause/?scanId=" + spiderScanId, Object.class);
     	}
     	else {
     		// Pause active scan
-    		restTemplate.getForObject("http://localhost:8081/JSON/ascan/action/pause/?scanId=" + activeScanId, Object.class);
+    		restTemplate.getForObject(ZAP_SERVICE_URL + "ascan/action/pause/?scanId=" + activeScanId, Object.class);
     	}
 		
 		return getScanStatus(scanId);
@@ -229,11 +231,11 @@ public class ZapController {
     	// Spider not finished yet
     	if (activeScanId == NOT_STARTED_ACTIVE_SCAN_ID) {
     		// Resume spider scan
-    		restTemplate.getForObject("http://localhost:8081/JSON/spider/action/resume/?scanId=" + spiderScanId, Object.class);
+    		restTemplate.getForObject(ZAP_SERVICE_URL + "spider/action/resume/?scanId=" + spiderScanId, Object.class);
     	}
     	else {
     		// Resume active scan
-    		restTemplate.getForObject("http://localhost:8081/JSON/ascan/action/resume/?scanId=" + activeScanId, Object.class);
+    		restTemplate.getForObject(ZAP_SERVICE_URL + "ascan/action/resume/?scanId=" + activeScanId, Object.class);
     	}
 		
 		return getScanStatus(scanId);
@@ -266,11 +268,11 @@ public class ZapController {
     	
     	// Active scan running or finished, get alerts
     	ZapScanAlertList alertList = restTemplate.getForObject(
-    			"http://localhost:8081/JSON/ascan/view/alertsIds/?scanId=" + activeScanId, ZapScanAlertList.class);
+    			ZAP_SERVICE_URL + "ascan/view/alertsIds/?scanId=" + activeScanId, ZapScanAlertList.class);
     
     	for (String alertId : alertList.getAlertsIds()) {
     		ZapScanAlertResponse alertResponse = restTemplate.getForObject(
-    				"http://localhost:8081/JSON/core/view/alert/?id=" + alertId, ZapScanAlertResponse.class);
+    				ZAP_SERVICE_URL + "core/view/alert/?id=" + alertId, ZapScanAlertResponse.class);
     		
     		if (alertResponse == null) {
     			continue;

@@ -26,7 +26,10 @@ import io.elastest.security.model.ScanStatus;
 @RequestMapping("/tools/arachni")
 public class ArachniController {
 
-    Logger logger = LoggerFactory.getLogger(this.getClass());
+	public static final String ARACHNI_SERVICE_URL = "http://arachni:7331/scans";
+
+	
+	Logger logger = LoggerFactory.getLogger(this.getClass());
 
     RestTemplate restTemplate = new RestTemplate();
     
@@ -42,8 +45,7 @@ public class ArachniController {
     	arachniRequest.getChecks().add("*");
     	
     	HttpEntity<ArachniScanRequest> request = new HttpEntity<>(arachniRequest);
-    	ArachniScan arachniScan = restTemplate.postForObject("http://localhost:7331/scans", request,
-    			ArachniScan.class);
+    	ArachniScan arachniScan = restTemplate.postForObject(ARACHNI_SERVICE_URL, request, ArachniScan.class);
     	
     	logger.info("Arachni Scan ID: " + arachniScan.getScanId());
     	
@@ -56,7 +58,7 @@ public class ArachniController {
     @RequestMapping(value = "/scans/{scanId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanStatus getScanStatus(@PathVariable (required = true) String scanId) {
     	
-    	ArachniScanStatus arachniStatus = restTemplate.getForObject("http://localhost:7331/scans/" + scanId,
+    	ArachniScanStatus arachniStatus = restTemplate.getForObject(ARACHNI_SERVICE_URL + "/" + scanId,
     			ArachniScanStatus.class);
     	
     	ScanStatus status = new ScanStatus();
@@ -74,7 +76,7 @@ public class ArachniController {
     		produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanStatus pauseScan(@PathVariable (required = true) String scanId) {
     	
-		restTemplate.put("http://localhost:7331/scans/" + scanId + "/pause", scanId);
+		restTemplate.put(ARACHNI_SERVICE_URL + "/" + scanId + "/pause", scanId);
 		
 		return getScanStatus(scanId);
     }
@@ -83,7 +85,7 @@ public class ArachniController {
     		produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanStatus resumeScan(@PathVariable (required = true) String scanId) {
     	
-		restTemplate.put("http://localhost:7331/scans/" + scanId + "/resume", scanId);
+		restTemplate.put(ARACHNI_SERVICE_URL + "/" + scanId + "/resume", scanId);
 		
 		return getScanStatus(scanId);
     }
@@ -97,8 +99,8 @@ public class ArachniController {
     	scanReport.setProgress(scanStatus.getProgress());
     	scanReport.setStatus(scanStatus.getStatus());
     	
-    	ArachniScanReport arachniReport = restTemplate.getForObject(
-    			"http://localhost:7331/scans/" + scanId + "/report", ArachniScanReport.class);
+    	ArachniScanReport arachniReport = restTemplate.getForObject(ARACHNI_SERVICE_URL + "/" + scanId + "/report",
+    			ArachniScanReport.class);
     
     	if (arachniReport.getIssues() != null) {
 	    	for (ArachniScanAlert arachniAlert : arachniReport.getIssues()) {
