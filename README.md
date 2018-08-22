@@ -3,7 +3,7 @@
 (Work In Progress)
 
 Project documentation (in Spanish)  
-[https://docs.google.com/document/d/e/2PACX-1vQbjAfHrBmC5O-MsHuL0mBRb7ynxQaenWpycP2DA365IUb4PmB5aZuYFGhQEQXgFY1bfSC13-zTwJSg/pub]
+https://docs.google.com/document/d/e/2PACX-1vQbjAfHrBmC5O-MsHuL0mBRb7ynxQaenWpycP2DA365IUb4PmB5aZuYFGhQEQXgFY1bfSC13-zTwJSg/pub
 
 
 ### Index
