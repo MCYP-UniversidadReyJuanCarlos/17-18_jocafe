@@ -71,7 +71,7 @@ public class W3afController {
     	w3afRequest.setUrl(scanRequest.getUrl());
     	
     	// Load scan profile from resource file
-    	String profile = W3AF_PROFILE_FAST_SCAN;
+    	String profile = W3AF_PROFILE_FULL_AUDIT;
     	w3afRequest.setScanProfile(getFile(W3AF_PROFILE_DIR + profile));
 
     	logger.info("W3af Scan Profile: " + profile);
