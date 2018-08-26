@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import io.elastest.security.model.Reference;
@@ -249,6 +250,17 @@ public class W3afController {
     	}
     	
     	return scanReport;
+    }
+    
+    public boolean isToolAvailable() {
+    	Object result = null;
+    	try {
+    		result = restTemplate.getForObject(W3AF_SERVICE_URL, Object.class);
+    	}
+    	catch (RestClientException e) {
+    	}
+    	
+    	return result != null;
     }
     
 }
