@@ -27,7 +27,7 @@ import io.elastest.security.model.ScanStatus;
 @RequestMapping("/tools/arachni")
 public class ArachniController {
 
-	public static final String ARACHNI_SERVICE_URL = "http://arachni:7331/scans";
+	public static final String ARACHNI_SERVICE_URL = "http://0.0.0.0:7331/scans";
 
 	
 	Logger logger = LoggerFactory.getLogger(this.getClass());

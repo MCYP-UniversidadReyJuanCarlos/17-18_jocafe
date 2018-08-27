@@ -28,7 +28,7 @@ import io.elastest.security.model.ScanStatus;
 @RequestMapping("/tools/zap")
 public class ZapController {
 	
-	public static final String ZAP_SERVICE_URL = "http://zap:8081/JSON/";
+	public static final String ZAP_SERVICE_URL = "http://0.0.0.0:8081/JSON/";
 	
     private static final Long NOT_STARTED_ACTIVE_SCAN_ID = -1L;
 	

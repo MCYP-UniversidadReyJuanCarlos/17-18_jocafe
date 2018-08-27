@@ -33,7 +33,7 @@ import io.elastest.security.tools.w3af.W3afScanAlert.OwaspTop10;
 @RequestMapping("/tools/w3af")
 public class W3afController {
 	
-	public static final String W3AF_SERVICE_URL = "http://w3af:5000/scans/";
+	public static final String W3AF_SERVICE_URL = "http://0.0.0.0:5000/scans/";
 
 	public static final String W3AF_PROFILE_DIR = "/w3af/profiles/";
 	
