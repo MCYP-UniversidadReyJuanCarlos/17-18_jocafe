@@ -22,10 +22,11 @@ import io.elastest.security.model.ScanReport;
 import io.elastest.security.model.ScanRequest;
 import io.elastest.security.model.ScanResponse;
 import io.elastest.security.model.ScanStatus;
+import io.elastest.security.tools.ToolController;
 
 @RestController
 @RequestMapping("/tools/arachni")
-public class ArachniController {
+public class ArachniController implements ToolController {
 
 	public static final String ARACHNI_SERVICE_URL = "http://0.0.0.0:7331/scans";
 
@@ -35,6 +36,7 @@ public class ArachniController {
     RestTemplate restTemplate = new RestTemplate();
     
     
+    @Override
     @RequestMapping(value = "/scans", method = RequestMethod.POST,
     		consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanResponse startScan(@RequestBody ScanRequest scanRequest) {
@@ -56,6 +58,7 @@ public class ArachniController {
     	return scanResponse;
     }
     
+    @Override
     @RequestMapping(value = "/scans/{scanId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanStatus getScanStatus(@PathVariable (required = true) String scanId) {
     	
@@ -73,6 +76,7 @@ public class ArachniController {
     	return status;    	
     }
     	
+    @Override
     @RequestMapping(value = "/scans/{scanId}/pause", method = RequestMethod.PUT,
     		produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanStatus pauseScan(@PathVariable (required = true) String scanId) {
@@ -82,6 +86,7 @@ public class ArachniController {
 		return getScanStatus(scanId);
     }
     	
+    @Override
     @RequestMapping(value = "/scans/{scanId}/resume", method = RequestMethod.PUT,
     		produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanStatus resumeScan(@PathVariable (required = true) String scanId) {
@@ -91,14 +96,12 @@ public class ArachniController {
 		return getScanStatus(scanId);
     }
     	
+    @Override
     @RequestMapping(value = "/scans/{scanId}/report", method = RequestMethod.GET,
     		produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanReport getScanReport(@PathVariable (required = true) String scanId) {
-    	ScanStatus scanStatus = getScanStatus(scanId);
-    	
     	ScanReport scanReport = new ScanReport();
-    	scanReport.setProgress(scanStatus.getProgress());
-    	scanReport.setStatus(scanStatus.getStatus());
+    	scanReport.setStatus(getScanStatus(scanId));
     	
     	ArachniScanReport arachniReport = restTemplate.getForObject(ARACHNI_SERVICE_URL + "/" + scanId + "/report",
     			ArachniScanReport.class);
@@ -147,6 +150,7 @@ public class ArachniController {
     	return scanReport;
     }
     
+    @Override
     public boolean isToolAvailable() {
     	Object result = null;
     	try {

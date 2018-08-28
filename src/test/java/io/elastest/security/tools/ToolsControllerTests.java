@@ -10,12 +10,12 @@ import org.junit.Test;
 
 import io.restassured.module.mockmvc.RestAssuredMockMvc;
 
-public class ToolControllerTests {
+public class ToolsControllerTests {
 	
     @Test
     public void allToolsAvailable() throws Exception {
 
-    	RestAssuredMockMvc.standaloneSetup(new ToolController());
+    	RestAssuredMockMvc.standaloneSetup(new ToolsController());
     	
     	when().
         	get("/tools").

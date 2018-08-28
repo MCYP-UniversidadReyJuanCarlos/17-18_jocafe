@@ -3,28 +3,21 @@ package io.elastest.security.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+
 public class ScanReport {
 
-	private String progress;
-	
-	private String status;
+	@JsonUnwrapped
+	private ScanStatus status;
 	
 	private List<ScanAlert> alerts = new ArrayList<>();
 
 	
-	public String getProgress() {
-		return progress;
-	}
-
-	public void setProgress(String progress) {
-		this.progress = progress;
-	}
-
-	public String getStatus() {
+	public ScanStatus getStatus() {
 		return status;
 	}
 
-	public void setStatus(String status) {
+	public void setStatus(ScanStatus status) {
 		this.status = status;
 	}
 

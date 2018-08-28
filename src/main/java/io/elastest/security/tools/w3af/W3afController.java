@@ -27,11 +27,12 @@ import io.elastest.security.model.ScanReport;
 import io.elastest.security.model.ScanRequest;
 import io.elastest.security.model.ScanResponse;
 import io.elastest.security.model.ScanStatus;
+import io.elastest.security.tools.ToolController;
 import io.elastest.security.tools.w3af.W3afScanAlert.OwaspTop10;
 
 @RestController
 @RequestMapping("/tools/w3af")
-public class W3afController {
+public class W3afController implements ToolController {
 	
 	public static final String W3AF_SERVICE_URL = "http://0.0.0.0:5000/scans/";
 
@@ -52,6 +53,7 @@ public class W3afController {
 	RestTemplate restTemplate = new RestTemplate();
     
     
+    @Override
     @RequestMapping(value = "/scans", method = RequestMethod.POST,
     		consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanResponse startScan(@RequestBody ScanRequest scanRequest) {
@@ -109,6 +111,7 @@ public class W3afController {
 		return "";
     }
     
+    @Override
     @RequestMapping(value = "/scans/{scanId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanStatus getScanStatus(@PathVariable (required = true) String scanId) {
     	
@@ -126,6 +129,7 @@ public class W3afController {
     	return status;    	
     }
     	
+    @Override
     @RequestMapping(value = "/scans/{scanId}/pause", method = RequestMethod.PUT,
     		produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanStatus pauseScan(@PathVariable (required = true) String scanId) {
@@ -136,6 +140,7 @@ public class W3afController {
 		return getScanStatus(scanId);
     }
     	
+    @Override
     @RequestMapping(value = "/scans/{scanId}/resume", method = RequestMethod.PUT,
     		produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanStatus resumeScan(@PathVariable (required = true) String scanId) {
@@ -146,14 +151,12 @@ public class W3afController {
 		return getScanStatus(scanId);
     }
     	
+    @Override
     @RequestMapping(value = "/scans/{scanId}/report", method = RequestMethod.GET,
     		produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanReport getScanReport(@PathVariable (required = true) String scanId) {
-    	ScanStatus scanStatus = getScanStatus(scanId);
-    	
     	ScanReport scanReport = new ScanReport();
-    	scanReport.setProgress(scanStatus.getProgress());
-    	scanReport.setStatus(scanStatus.getStatus());
+    	scanReport.setStatus(getScanStatus(scanId));
     	
     	W3afScanAlertList alertList = restTemplate.getForObject(W3AF_SERVICE_URL + scanId + "/kb",
     			W3afScanAlertList.class);
@@ -252,6 +255,7 @@ public class W3afController {
     	return scanReport;
     }
     
+    @Override
     public boolean isToolAvailable() {
     	Object result = null;
     	try {

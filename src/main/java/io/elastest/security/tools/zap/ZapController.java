@@ -23,10 +23,11 @@ import io.elastest.security.model.ScanReport;
 import io.elastest.security.model.ScanRequest;
 import io.elastest.security.model.ScanResponse;
 import io.elastest.security.model.ScanStatus;
+import io.elastest.security.tools.ToolController;
 
 @RestController
 @RequestMapping("/tools/zap")
-public class ZapController {
+public class ZapController implements ToolController {
 	
 	public static final String ZAP_SERVICE_URL = "http://0.0.0.0:8081/JSON/";
 	
@@ -74,6 +75,7 @@ public class ZapController {
 		this.spiderScans = new HashMap<>();
 	}
     
+    @Override
 	@RequestMapping(value = "/scans", method = RequestMethod.POST,
     		consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanResponse startScan(@RequestBody ScanRequest scanRequest) {
@@ -143,6 +145,7 @@ public class ZapController {
     	return spiderStatus;
     }
 
+    @Override
     @RequestMapping(value = "/scans/{scanId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanStatus getScanStatus(@PathVariable (required = true) String scanId) {
     	ScanStatus status = null;
@@ -188,6 +191,7 @@ public class ZapController {
     	return status;    	
     }
     	
+    @Override
     @RequestMapping(value = "/scans/{scanId}/pause", method = RequestMethod.PUT,
     		produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanStatus pauseScan(@PathVariable (required = true) String scanId) {
@@ -215,6 +219,7 @@ public class ZapController {
 		return getScanStatus(scanId);
     }
     	
+    @Override
     @RequestMapping(value = "/scans/{scanId}/resume", method = RequestMethod.PUT,
     		produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanStatus resumeScan(@PathVariable (required = true) String scanId) {
@@ -242,6 +247,7 @@ public class ZapController {
 		return getScanStatus(scanId);
     }
     	
+    @Override
     @RequestMapping(value = "/scans/{scanId}/report", method = RequestMethod.GET,
     		produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanReport getScanReport(@PathVariable (required = true) String scanId) {
@@ -258,9 +264,7 @@ public class ZapController {
     	
     	Long activeScanId = spiderScans.get(spiderScanId); 
 
-    	ScanStatus scanStatus = getScanStatus(scanId);
-    	scanReport.setProgress(scanStatus.getProgress());
-    	scanReport.setStatus(scanStatus.getStatus());
+    	scanReport.setStatus(getScanStatus(scanId));
 
     	// Spider not finished yet, no alerts
     	if (activeScanId == NOT_STARTED_ACTIVE_SCAN_ID) {
@@ -329,6 +333,7 @@ public class ZapController {
     	return scanReport;
     }
 
+    @Override
     public boolean isToolAvailable() {
     	Object result = null;
     	try {
