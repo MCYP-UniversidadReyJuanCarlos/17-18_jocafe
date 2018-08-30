@@ -124,12 +124,12 @@ public class ZapController implements ToolController {
     	spiderScans.put(spiderScanId, zapScan.getScanId());
     	
     	logger.info("ZAP Active Scan ID: " + zapScan.getScanId());
-
 	}
 
     private ScanStatus getSpiderStatus(Long spiderScanId) {
     	ScanStatus spiderStatus = null;
 
+    	// Request spider scans status list because it gives more information than a particular scan status request
     	ZapScansList spiderScans = restTemplate.getForObject(ZAP_SERVICE_URL + "spider/view/scans/",
     			ZapScansList.class);
     	
