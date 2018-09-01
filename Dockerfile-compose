@@ -1,0 +1,17 @@
+FROM openjdk:8-jdk
+
+# Update before installing any package
+RUN apt-get update -y
+
+# Install Maven
+RUN apt-get install -y maven
+
+# Copy source code
+COPY . /code/
+WORKDIR /code
+
+# Compile and package app
+RUN mvn package -Dmaven.test.skip=true
+
+WORKDIR /code/target
+CMD [ "java", "-jar", "-Dspring.profiles.active=docker-compose", "WebSecTester.jar" ]

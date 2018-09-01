@@ -15,7 +15,9 @@ services:
     command: /home/w3af/w3af/w3af_api 0.0.0.0:5000
 
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: ./Dockerfile-compose
     ports:
       - "8080:8080"
   
