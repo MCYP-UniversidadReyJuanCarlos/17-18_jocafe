@@ -1,0 +1,16 @@
+tools:
+  
+  arachni:
+    host: http://127.0.0.1
+    port: 7331
+    context: scans
+      
+  w3af:
+    host: http://127.0.0.1
+    port: 5000
+    context: scans/
+
+  zap:
+    host: http://127.0.0.1
+    port: 8081
+    context: JSON/

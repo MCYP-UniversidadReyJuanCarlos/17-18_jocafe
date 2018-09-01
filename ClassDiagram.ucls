@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <class-diagram version="1.2.2" icons="true" automaticImage="PNG" always-add-relationships="false" generalizations="true" 
   realizations="true" associations="true" dependencies="false" nesting-relationships="true" router="FAN">  
-  <class id="1" language="java" name="io.elastest.security.tools.ToolsController" project="elastest-security" 
-    file="/elastest-security/src/main/java/io/elastest/security/tools/ToolsController.java" binary="false" 
+  <class id="1" language="java" name="com.websectester.tools.ToolsController" project="elastest-security" 
+    file="/elastest-security/src/main/java/com/websectester/tools/ToolsController.java" binary="false" 
     corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="852" y="409"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
@@ -11,8 +11,8 @@
       <operations public="false" package="false" protected="false" private="false" static="true"/>    
     </display>  
   </class>  
-  <interface id="2" language="java" name="io.elastest.security.tools.ToolController" project="elastest-security" 
-    file="/elastest-security/src/main/java/io/elastest/security/tools/ToolController.java" binary="false" 
+  <interface id="2" language="java" name="com.websectester.tools.ToolController" project="elastest-security" 
+    file="/elastest-security/src/main/java/com/websectester/tools/ToolController.java" binary="false" 
     corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="852" y="114"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
@@ -21,8 +21,8 @@
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </interface>  
-  <class id="3" language="java" name="io.elastest.security.tools.arachni.ArachniController" project="elastest-security" 
-    file="/elastest-security/src/main/java/io/elastest/security/tools/arachni/ArachniController.java" binary="false" 
+  <class id="3" language="java" name="com.websectester.tools.arachni.ArachniController" project="elastest-security" 
+    file="/elastest-security/src/main/java/com/websectester/tools/arachni/ArachniController.java" binary="false" 
     corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="637" y="254"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
@@ -31,8 +31,8 @@
       <operations public="false" package="false" protected="false" private="false" static="true"/>    
     </display>  
   </class>  
-  <class id="4" language="java" name="io.elastest.security.tools.w3af.W3afController" project="elastest-security" 
-    file="/elastest-security/src/main/java/io/elastest/security/tools/w3af/W3afController.java" binary="false" 
+  <class id="4" language="java" name="com.websectester.tools.w3af.W3afController" project="elastest-security" 
+    file="/elastest-security/src/main/java/com/websectester/tools/w3af/W3afController.java" binary="false" 
     corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="852" y="253"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
@@ -41,8 +41,8 @@
       <operations public="false" package="false" protected="false" private="false" static="true"/>    
     </display>  
   </class>  
-  <class id="5" language="java" name="io.elastest.security.tools.zap.ZapController" project="elastest-security" 
-    file="/elastest-security/src/main/java/io/elastest/security/tools/zap/ZapController.java" binary="false" 
+  <class id="5" language="java" name="com.websectester.tools.zap.ZapController" project="elastest-security" 
+    file="/elastest-security/src/main/java/com/websectester/tools/zap/ZapController.java" binary="false" 
     corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="1047" y="253"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
@@ -51,9 +51,8 @@
       <operations public="false" package="false" protected="false" private="false" static="true"/>    
     </display>  
   </class>  
-  <class id="6" language="java" name="io.elastest.security.model.ScanRequest" project="elastest-security" 
-    file="/elastest-security/src/main/java/io/elastest/security/model/ScanRequest.java" binary="false" 
-    corner="BOTTOM_RIGHT">    
+  <class id="6" language="java" name="com.websectester.model.ScanRequest" project="elastest-security" 
+    file="/elastest-security/src/main/java/com/websectester/model/ScanRequest.java" binary="false" corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="81" y="53"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
@@ -61,8 +60,8 @@
       <operations public="false" package="false" protected="false" private="false" static="true"/>    
     </display>  
   </class>  
-  <class id="7" language="java" name="io.elastest.security.model.ScanResponse" project="elastest-security" 
-    file="/elastest-security/src/main/java/io/elastest/security/model/ScanResponse.java" binary="false" 
+  <class id="7" language="java" name="com.websectester.model.ScanResponse" project="elastest-security" 
+    file="/elastest-security/src/main/java/com/websectester/model/ScanResponse.java" binary="false" 
     corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="236" y="54"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
@@ -71,9 +70,8 @@
       <operations public="false" package="false" protected="false" private="false" static="true"/>    
     </display>  
   </class>  
-  <class id="8" language="java" name="io.elastest.security.model.ScanReport" project="elastest-security" 
-    file="/elastest-security/src/main/java/io/elastest/security/model/ScanReport.java" binary="false" 
-    corner="BOTTOM_RIGHT">    
+  <class id="8" language="java" name="com.websectester.model.ScanReport" project="elastest-security" 
+    file="/elastest-security/src/main/java/com/websectester/model/ScanReport.java" binary="false" corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="415" y="46"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
@@ -81,9 +79,8 @@
       <operations public="false" package="false" protected="false" private="false" static="true"/>    
     </display>  
   </class>  
-  <class id="9" language="java" name="io.elastest.security.model.ScanAttack" project="elastest-security" 
-    file="/elastest-security/src/main/java/io/elastest/security/model/ScanAttack.java" binary="false" 
-    corner="BOTTOM_RIGHT">    
+  <class id="9" language="java" name="com.websectester.model.ScanAttack" project="elastest-security" 
+    file="/elastest-security/src/main/java/com/websectester/model/ScanAttack.java" binary="false" corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="256" y="389"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
@@ -91,9 +88,8 @@
       <operations public="false" package="false" protected="false" private="false" static="true"/>    
     </display>  
   </class>  
-  <class id="10" language="java" name="io.elastest.security.model.ScanAlert" project="elastest-security" 
-    file="/elastest-security/src/main/java/io/elastest/security/model/ScanAlert.java" binary="false" 
-    corner="BOTTOM_RIGHT">    
+  <class id="10" language="java" name="com.websectester.model.ScanAlert" project="elastest-security" 
+    file="/elastest-security/src/main/java/com/websectester/model/ScanAlert.java" binary="false" corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="415" y="201"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
@@ -101,9 +97,8 @@
       <operations public="false" package="false" protected="false" private="false" static="true"/>    
     </display>  
   </class>  
-  <class id="11" language="java" name="io.elastest.security.model.Reference" project="elastest-security" 
-    file="/elastest-security/src/main/java/io/elastest/security/model/Reference.java" binary="false" 
-    corner="BOTTOM_RIGHT">    
+  <class id="11" language="java" name="com.websectester.model.Reference" project="elastest-security" 
+    file="/elastest-security/src/main/java/com/websectester/model/Reference.java" binary="false" corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="415" y="388"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
@@ -111,9 +106,8 @@
       <operations public="false" package="false" protected="false" private="false" static="true"/>    
     </display>  
   </class>  
-  <class id="12" language="java" name="io.elastest.security.model.ScanStatus" project="elastest-security" 
-    file="/elastest-security/src/main/java/io/elastest/security/model/ScanStatus.java" binary="false" 
-    corner="BOTTOM_RIGHT">    
+  <class id="12" language="java" name="com.websectester.model.ScanStatus" project="elastest-security" 
+    file="/elastest-security/src/main/java/com/websectester/model/ScanStatus.java" binary="false" corner="BOTTOM_RIGHT">    
     <position height="-1" width="-1" x="270" y="176"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
@@ -121,72 +115,100 @@
       <operations public="false" package="false" protected="false" private="false" static="true"/>    
     </display>  
   </class>  
-  <realization id="13">    
-    <end type="SOURCE" refId="5"/>    
-    <end type="TARGET" refId="2"/>  
-  </realization>  
-  <association id="14">    
+  <association id="13">    
     <end type="SOURCE" refId="1" navigable="false">      
-      <attribute id="15" name="zapController"/>      
-      <multiplicity id="16" minimum="0" maximum="1"/>    
-    </end>    
-    <end type="TARGET" refId="5" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <realization id="17">    
-    <end type="SOURCE" refId="3"/>    
-    <end type="TARGET" refId="2"/>  
-  </realization>  
-  <association id="18">    
-    <end type="SOURCE" refId="10" navigable="false">      
-      <attribute id="19" name="references"/>      
-      <multiplicity id="20" minimum="0" maximum="2147483647"/>    
-    </end>    
-    <end type="TARGET" refId="11" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="21">    
-    <end type="SOURCE" refId="8" navigable="false">      
-      <attribute id="22" name="status"/>      
-      <multiplicity id="23" minimum="0" maximum="1"/>    
-    </end>    
-    <end type="TARGET" refId="12" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="24">    
-    <end type="SOURCE" refId="10" navigable="false">      
-      <attribute id="25" name="attack"/>      
-      <multiplicity id="26" minimum="0" maximum="1"/>    
-    </end>    
-    <end type="TARGET" refId="9" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <realization id="27">    
-    <end type="SOURCE" refId="4"/>    
-    <end type="TARGET" refId="2"/>  
-  </realization>  
-  <association id="28">    
-    <end type="SOURCE" refId="1" navigable="false">      
-      <attribute id="29" name="w3afController"/>      
-      <multiplicity id="30" minimum="0" maximum="1"/>    
+      <attribute id="14" name="w3afController">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </attribute>      
+      <multiplicity id="15" minimum="0" maximum="1">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </multiplicity>    
     </end>    
     <end type="TARGET" refId="4" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <association id="31">    
-    <end type="SOURCE" refId="8" navigable="false">      
-      <attribute id="32" name="alerts"/>      
-      <multiplicity id="33" minimum="0" maximum="2147483647"/>    
+  <association id="16">    
+    <end type="SOURCE" refId="1" navigable="false">      
+      <attribute id="17" name="arachniController">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </attribute>      
+      <multiplicity id="18" minimum="0" maximum="1">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </multiplicity>    
     </end>    
-    <end type="TARGET" refId="10" navigable="true"/>    
+    <end type="TARGET" refId="3" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="19">    
+    <end type="SOURCE" refId="10" navigable="false">      
+      <attribute id="20" name="attack">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </attribute>      
+      <multiplicity id="21" minimum="0" maximum="1">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </multiplicity>    
+    </end>    
+    <end type="TARGET" refId="9" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="22">    
+    <end type="SOURCE" refId="1" navigable="false">      
+      <attribute id="23" name="zapController">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </attribute>      
+      <multiplicity id="24" minimum="0" maximum="1">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </multiplicity>    
+    </end>    
+    <end type="TARGET" refId="5" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <realization id="25">    
+    <end type="SOURCE" refId="4"/>    
+    <end type="TARGET" refId="2"/>  
+  </realization>  
+  <realization id="26">    
+    <end type="SOURCE" refId="5"/>    
+    <end type="TARGET" refId="2"/>  
+  </realization>  
+  <realization id="27">    
+    <end type="SOURCE" refId="3"/>    
+    <end type="TARGET" refId="2"/>  
+  </realization>  
+  <association id="28">    
+    <end type="SOURCE" refId="8" navigable="false">      
+      <attribute id="29" name="status">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </attribute>      
+      <multiplicity id="30" minimum="0" maximum="1">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </multiplicity>    
+    </end>    
+    <end type="TARGET" refId="12" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="31">    
+    <end type="SOURCE" refId="10" navigable="false">      
+      <attribute id="32" name="references">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </attribute>      
+      <multiplicity id="33" minimum="0" maximum="2147483647">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </multiplicity>    
+    </end>    
+    <end type="TARGET" refId="11" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
   <association id="34">    
-    <end type="SOURCE" refId="1" navigable="false">      
-      <attribute id="35" name="arachniController"/>      
-      <multiplicity id="36" minimum="0" maximum="1"/>    
+    <end type="SOURCE" refId="8" navigable="false">      
+      <attribute id="35" name="alerts">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </attribute>      
+      <multiplicity id="36" minimum="0" maximum="2147483647">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </multiplicity>    
     </end>    
-    <end type="TARGET" refId="3" navigable="true"/>    
+    <end type="TARGET" refId="10" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
   <classifier-display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 

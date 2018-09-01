@@ -14,5 +14,5 @@ echo Waiting 5 seconds for tools to get ready...
 sleep 5
 
 # Run application 
-cd /usr/app
-java -jar security-0.1.0.jar
+cd /code/target
+java -jar -Dspring.profiles.active=docker WebSecTester.jar 
