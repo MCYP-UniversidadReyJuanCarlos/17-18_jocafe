@@ -1,4 +1,6 @@
-# Unified management of web vulnerability analysis tools using REST API and Docker containers
+# WebSecTester
+
+## Unified management of web vulnerability analysis tools using REST API and Docker containers
 
 (Work In Progress)
 
