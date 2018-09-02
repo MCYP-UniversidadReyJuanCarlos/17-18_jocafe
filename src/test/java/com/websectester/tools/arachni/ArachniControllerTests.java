@@ -1,11 +1,13 @@
 package com.websectester.tools.arachni;
 
+import static io.restassured.module.jsv.JsonSchemaValidator.*;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.*;
 import static io.restassured.module.mockmvc.matcher.RestAssuredMockMvcMatchers.*;
 import static org.hamcrest.CoreMatchers.*;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -22,9 +24,6 @@ public class ArachniControllerTests {
 	
 	private static final String TOOL_PATH = "/tools/arachni/scans/";
 
-	private static final String VULNERABLE_APP_URL = "http://testphp.vulnweb.com";
-	
-	
 	@Value("${tools.arachni.host}")
 	String serviceHost;
 
@@ -33,12 +32,20 @@ public class ArachniControllerTests {
 
 	@Value("${tools.arachni.context}")
 	String serviceContext;
+	
+	@Value("${test.vulnerable_app.url}")
+	String vulnerableAppURL;
+	
+	@Autowired
+	ArachniController arachniController;
 
 	
 	@Test
     public void launchAndControlScan() throws Exception {
 
-		ArachniController arachniController = new ArachniController();
+		if (arachniController == null) {
+			arachniController = new ArachniController();
+		}
 		arachniController.setServiceHost(serviceHost);
 		arachniController.setServicePort(servicePort);
 		arachniController.setServiceContext(serviceContext);
@@ -50,44 +57,56 @@ public class ArachniControllerTests {
     	given().
     		accept(ContentType.JSON).
     		contentType(ContentType.JSON).
-    		body(new ScanRequest(VULNERABLE_APP_URL)).
+    		body(new ScanRequest(vulnerableAppURL)).
     	when().
         	post(TOOL_PATH).
         then().
-	        statusCode(200).
-	        body("scanId", isA(String.class)).  
+        	statusCode(equalTo(200)).
+        	body("scanId", isA(String.class)).  
     	extract().
         	path("scanId");
+    	
+    	// Wait 1 sec
+    	Thread.sleep(1000);
     	
     	// Get scan status
     	when().
     		get(TOOL_PATH + scanId).
     	then().
-    		statusCode(200).
+    		statusCode(equalTo(200)).
     		body("status", isA(String.class), "progress", isA(String.class));
+    	
+    	// Wait 1 sec
+    	Thread.sleep(1000);
     	
     	// Pause scan
     	when().
 			put(TOOL_PATH + scanId + "/pause").
 		then().
-			statusCode(200).
+			statusCode(equalTo(200)).
 			body("status", isA(String.class), "progress", isA(String.class)).and().
 			body("status", containsString("PAUSING"));
 	
+    	// Wait 1 sec
+    	Thread.sleep(1000);
+    	
     	// Resume scan
     	when().
 			put(TOOL_PATH + scanId + "/resume").
 		then().
-			statusCode(200).
+			statusCode(equalTo(200)).
 			body("status", isA(String.class), "progress", isA(String.class));
+    	
+    	// Wait 10 secs
+    	Thread.sleep(10000);
     	
     	// Get scan results
     	when().
     		get(TOOL_PATH + scanId + "/report").
     	then().
-    		statusCode(200).
-    		body("status", isA(String.class), "progress", isA(String.class), "alerts", is(notNullValue()));
-	
+    		statusCode(equalTo(200)).
+    		body(matchesJsonSchemaInClasspath("report-schema.json"));
+    	
     }
 
 }

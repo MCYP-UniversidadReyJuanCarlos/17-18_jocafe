@@ -14,3 +14,7 @@ tools:
     host: http://127.0.0.1
     port: 8081
     context: JSON/
+
+test:
+  vulnerable_app:
+    url: http://testphp.vulnweb.com

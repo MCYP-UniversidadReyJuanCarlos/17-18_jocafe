@@ -37,6 +37,19 @@ http://www.arachni-scanner.com/
 http://w3af.org/
 
 ## How to run
+
+### Docker
+
+    sudo docker build . -t websectester
+    sudo docker run websectester
+
+### Docker unit tests
+
+    sudo docker build . -f Dockerfile-test -t websectester-test
+    sudo docker run websectester-test
+
+### Docker-compose
+
 In addition to the Docker image, a `docker-compose.yml` file is offered to start the analysis tools and the management application by running one simple command at the project's root folder (maybe you must enter this command as root with `sudo` at the beginning):
 
     docker-compose up --build

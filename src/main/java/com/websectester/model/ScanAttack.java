@@ -1,10 +1,14 @@
 package com.websectester.model;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
+@JsonInclude(NON_NULL)
 public class ScanAttack {
 
 	public static class Attributes {

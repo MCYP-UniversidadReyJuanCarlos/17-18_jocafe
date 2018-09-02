@@ -1,0 +1,76 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Scan Report",
+    "type": "object",
+    "properties": {
+        "progress": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string"
+        },
+        "alerts": {
+            "title": "Alerts list",
+            "type": "array",
+            "items": {
+                "title": "Alert",
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string"
+                    },
+                    "severity": {
+                        "type": "string"
+                    },
+                    "solution": {
+                        "type": "string"
+                    },
+                    "attack": {
+                    	"title": "Attack",
+                    	"type": "object",
+                    	"properties": {
+                    		"param": {
+                    			"type": "string"
+                    		},
+                    		"evidence": {
+                    			"type": "string"
+                    		},
+                    		"attributes": {
+                    			"type": "object",
+                    			"properties": {
+                    			}
+                    		}
+                    	}
+                    },
+                    "references": {
+                    	"title": "References list",
+                    	"type": "array",
+                    	"items": {
+                    		"title": "Reference",
+                    		"type": "object",
+                    		"properties": {
+                    			"source": {
+	                    			"type": "string"
+	                    		},
+	                    		"id": {
+	                    			"type": "string"
+	                    		},
+	                    		"url": {
+	                    			"type": "string"
+	                    		}
+                    		}
+                    	}
+                    }
+                },
+                "required": ["name", "url"]
+            }
+        }
+    },
+    "required": ["progress", "status", "alerts"]
+}

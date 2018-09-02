@@ -78,7 +78,7 @@ public class ToolsControllerTests {
     	when().
         	get("/tools").
         then().
-	        statusCode(200).
+    		statusCode(equalTo(200)).
 	        body("identifier", hasItems("zap", "arachni", "w3af")).
 	        body("name", hasItems("OWASP ZAP", "Arachni", "W3af")).
 	        body("available", equalTo(Arrays.asList(new Boolean[] {true, true, true})));  

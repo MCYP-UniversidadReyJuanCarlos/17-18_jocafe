@@ -1,5 +1,6 @@
 package com.websectester.tools.zap;
 
+import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.*;
 import static io.restassured.module.mockmvc.matcher.RestAssuredMockMvcMatchers.*;
 import static org.hamcrest.CoreMatchers.*;
@@ -23,8 +24,6 @@ public class ZapControllerTests {
 	
 	private static final String TOOL_PATH = "/tools/zap/scans/";
 	
-	private static final String VULNERABLE_APP_URL = "http://testphp.vulnweb.com";
-	
 	
 	@Value("${tools.zap.host}")
 	String serviceHost;
@@ -35,11 +34,18 @@ public class ZapControllerTests {
 	@Value("${tools.zap.context}")
 	String serviceContext;
 
+	@Value("${test.vulnerable_app.url}")
+	String vulnerableAppURL;
+
+	@Autowired
+	ZapController zapController;
 	
     @Test
     public void launchAndControlScan() throws Exception {
 
-    	ZapController zapController = new ZapController();
+    	if (zapController == null) {
+    		zapController = new ZapController();
+    	}
     	zapController.setServiceHost(serviceHost);
     	zapController.setServicePort(servicePort);
     	zapController.setServiceContext(serviceContext);
@@ -51,43 +57,55 @@ public class ZapControllerTests {
     	given().
     		accept(ContentType.JSON).
     		contentType(ContentType.JSON).
-    		body(new ScanRequest(VULNERABLE_APP_URL)).
+    		body(new ScanRequest(vulnerableAppURL)).
     	when().
         	post(TOOL_PATH).
         then().
-	        statusCode(200).
+    		statusCode(equalTo(200)).
 	        body("scanId", isA(String.class)).  
     	extract().
         	path("scanId");
+    	
+    	// Wait 1 sec
+    	Thread.sleep(1000);
     	
     	// Get scan status
     	when().
     		get(TOOL_PATH + scanId).
     	then().
-    		statusCode(200).
+    		statusCode(equalTo(200)).
     		body("status", isA(String.class), "progress", isA(String.class));
+    	
+    	// Wait 1 sec
+    	Thread.sleep(1000);
     	
     	// Pause scan
     	when().
 			put(TOOL_PATH + scanId + "/pause").
 		then().
-			statusCode(200).
+    		statusCode(equalTo(200)).
 			body("status", isA(String.class), "progress", isA(String.class)).and().
 			body("status", containsString("PAUSED"));
 	
+    	// Wait 1 sec
+    	Thread.sleep(1000);
+    	
     	// Resume scan
     	when().
 			put(TOOL_PATH + scanId + "/resume").
 		then().
-			statusCode(200).
+    		statusCode(equalTo(200)).
 			body("status", isA(String.class), "progress", isA(String.class));
+    	
+    	// Wait 10 secs
+    	Thread.sleep(1000);
     	
     	// Get scan results
     	when().
     		get(TOOL_PATH + scanId + "/report").
     	then().
-    		statusCode(200).
-    		body("status", isA(String.class), "progress", isA(String.class), "alerts", is(notNullValue()));
+    		statusCode(equalTo(200)).
+    		body(matchesJsonSchemaInClasspath("report-schema.json"));
 	
     }
 
