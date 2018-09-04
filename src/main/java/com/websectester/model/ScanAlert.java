@@ -19,9 +19,9 @@ public class ScanAlert {
 	
 	private String solution;
 	
-	private ScanAttack attack;
+	private AlertAttack attack;
 	
-	private List<Reference> references = new ArrayList<>();
+	private List<AlertReference> references = new ArrayList<>();
 
 	
 	public String getName() {
@@ -64,19 +64,19 @@ public class ScanAlert {
 		this.solution = solution;
 	}
 
-	public ScanAttack getAttack() {
+	public AlertAttack getAttack() {
 		return attack;
 	}
 
-	public void setAttack(ScanAttack attack) {
+	public void setAttack(AlertAttack attack) {
 		this.attack = attack;
 	}
 
-	public List<Reference> getReferences() {
+	public List<AlertReference> getReferences() {
 		return references;
 	}
 
-	public void setReferences(List<Reference> references) {
+	public void setReferences(List<AlertReference> references) {
 		this.references = references;
 	}
 	

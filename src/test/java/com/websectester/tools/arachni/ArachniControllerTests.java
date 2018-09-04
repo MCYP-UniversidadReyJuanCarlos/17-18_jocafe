@@ -1,9 +1,11 @@
 package com.websectester.tools.arachni;
 
-import static io.restassured.module.jsv.JsonSchemaValidator.*;
-import static io.restassured.module.mockmvc.RestAssuredMockMvc.*;
-import static io.restassured.module.mockmvc.matcher.RestAssuredMockMvcMatchers.*;
-import static org.hamcrest.CoreMatchers.*;
+import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
+import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
+import static io.restassured.module.mockmvc.RestAssuredMockMvc.when;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.isA;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,7 +15,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.websectester.model.ScanRequest;
-import com.websectester.tools.arachni.ArachniController;
 
 import io.restassured.http.ContentType;
 import io.restassured.module.mockmvc.RestAssuredMockMvc;

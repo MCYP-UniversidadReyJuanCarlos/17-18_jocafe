@@ -5,7 +5,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(NON_NULL)
-public class Reference {
+public class AlertReference {
 
 	private String source;
 	

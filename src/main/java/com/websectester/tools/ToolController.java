@@ -1,5 +1,7 @@
 package com.websectester.tools;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -10,7 +12,7 @@ import com.websectester.model.ScanStatus;
 
 public interface ToolController {
 
-    ScanResponse startScan(@RequestBody ScanRequest scanRequest);
+    ScanResponse startScan(@RequestBody ScanRequest scanRequest, HttpServletResponse response);
     
     ScanStatus getScanStatus(@PathVariable (required = true) String scanId);
 

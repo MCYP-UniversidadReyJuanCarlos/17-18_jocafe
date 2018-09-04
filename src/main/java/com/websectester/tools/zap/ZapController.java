@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,15 +20,16 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import com.websectester.model.Reference;
+import com.websectester.model.AlertReference;
 import com.websectester.model.ScanAlert;
-import com.websectester.model.ScanAttack;
+import com.websectester.model.AlertAttack;
 import com.websectester.model.ScanReport;
 import com.websectester.model.ScanRequest;
 import com.websectester.model.ScanResponse;
 import com.websectester.model.ScanStatus;
 import com.websectester.tools.ToolController;
 
+@SuppressWarnings("unused")
 @RestController
 @RequestMapping("/tools/zap")
 public class ZapController implements ToolController {
@@ -103,7 +106,7 @@ public class ZapController implements ToolController {
     @Override
 	@RequestMapping(value = "/scans", method = RequestMethod.POST,
     		consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ScanResponse startScan(@RequestBody ScanRequest scanRequest) {
+    public ScanResponse startScan(@RequestBody ScanRequest scanRequest, HttpServletResponse response) {
     	logger.info("ZAP Spider Scan: " + scanRequest.getUrl());
 
     	ZapScan spiderScan = restTemplate.getForObject(
@@ -316,15 +319,15 @@ public class ZapController implements ToolController {
     		alert.setSeverity(zapAlert.getRisk());
     		alert.setSolution(zapAlert.getSolution());
     		
-    		ScanAttack attack = new ScanAttack();
+    		AlertAttack attack = new AlertAttack();
     		attack.setParam(zapAlert.getParam());
     		attack.setEvidence(zapAlert.getEvidence());
     		alert.setAttack(attack);
     		
-    		List<Reference> references = new ArrayList<>();
+    		List<AlertReference> references = new ArrayList<>();
     		
     		// CWE
-    		Reference reference = new Reference();
+    		AlertReference reference = new AlertReference();
     		if ((zapAlert.getCweid() != null) && !zapAlert.getCweid().isEmpty()) {
 	    		reference.setSource("CWE");
 	    		reference.setId(zapAlert.getCweid());
@@ -333,7 +336,7 @@ public class ZapController implements ToolController {
     		
     		// WASC
     		if ((zapAlert.getWascid() != null) && !zapAlert.getWascid().isEmpty()) {
-	    		reference = new Reference();
+	    		reference = new AlertReference();
 	    		reference.setSource("WASC");
 	    		reference.setId(zapAlert.getWascid());
 	    		references.add(reference);
@@ -344,7 +347,7 @@ public class ZapController implements ToolController {
     		if ((zapReferences != null) && !zapReferences.isEmpty()) {
     			String[] refsArray = zapReferences.split(" |\n");
     			for (String ref : refsArray) {
-    				reference = new Reference();
+    				reference = new AlertReference();
     				reference.setUrl(ref);
     				references.add(reference);
     			}

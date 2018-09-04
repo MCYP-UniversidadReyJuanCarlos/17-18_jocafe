@@ -8,6 +8,9 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,9 +24,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import com.websectester.model.Reference;
+import com.websectester.model.AlertReference;
 import com.websectester.model.ScanAlert;
-import com.websectester.model.ScanAttack;
+import com.websectester.model.AlertAttack;
 import com.websectester.model.ScanReport;
 import com.websectester.model.ScanRequest;
 import com.websectester.model.ScanResponse;
@@ -81,7 +84,7 @@ public class W3afController implements ToolController {
     @Override
     @RequestMapping(value = "/scans", method = RequestMethod.POST,
     		consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ScanResponse startScan(@RequestBody ScanRequest scanRequest) {
+    public ScanResponse startScan(@RequestBody ScanRequest scanRequest, HttpServletResponse response) {
     	logger.info("W3af Scan: " + scanRequest.getUrl());
     	
     	// The current W3af REST API implementation does not allow users to run more than one concurrent scan.
@@ -101,6 +104,32 @@ public class W3afController implements ToolController {
     	String profile = W3AF_PROFILE_FULL_AUDIT;
     	w3afRequest.setScanProfile(getFile(W3AF_PROFILE_DIR + profile));
 
+    	// Authentication
+    	if (scanRequest.getAuth() != null) {
+    		if (checkAuthParameters(scanRequest)) {
+    			String authProfile = "\n\n[auth.generic]\n";
+    			authProfile += "\nauth_url = " + scanRequest.getAuth().getAuthUrl();
+    			authProfile += "\nusername_field = " + scanRequest.getAuth().getUsernameField();
+				authProfile += "\npassword_field = " + scanRequest.getAuth().getPasswordField();
+				authProfile += "\nusername = " + scanRequest.getAuth().getUsername();
+				authProfile += "\npassword = " + scanRequest.getAuth().getPassword();
+				authProfile += "\ncheck_url = " + scanRequest.getAuth().getCheckLoggedInUrl();
+				authProfile += "\ncheck_string = " + scanRequest.getAuth().getCheckLoggedInString();
+				authProfile += "\n\n";
+				w3afRequest.setScanProfile(w3afRequest.getScanProfile() + authProfile);
+    		}
+    		else {
+    			try {
+					response.sendError(HttpStatus.SC_BAD_REQUEST, "Missing required authentication parameters "
+							+ "(authUrl, usernameField, passwordField, username, password,"
+							+ " checkLoggedInUrl, checkLoggedInString)");
+					return new ScanResponse();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+    		}
+    	}
+    	
     	logger.info("W3af Scan Profile: " + profile);
 
     	HttpEntity<W3afScanRequest> request = new HttpEntity<>(w3afRequest);
@@ -114,6 +143,19 @@ public class W3afController implements ToolController {
     	return scanResponse;
     }
     
+    private boolean checkAuthParameters(ScanRequest scanRequest) {
+		if ((scanRequest.getAuth().getAuthUrl() == null) ||
+			(scanRequest.getAuth().getUsernameField() == null) ||	
+			(scanRequest.getAuth().getPasswordField() == null) ||	
+			(scanRequest.getAuth().getUsername() == null) ||	
+			(scanRequest.getAuth().getPassword() == null) ||	
+			(scanRequest.getAuth().getCheckLoggedInUrl() == null) ||	
+			(scanRequest.getAuth().getCheckLoggedInString() == null)) {	
+			return false;
+		}
+		return true;
+    }
+
     private String getFile(String fileName) {
     	InputStream inputStream = getClass().getResourceAsStream(fileName);
         BufferedReader br;
@@ -201,7 +243,7 @@ public class W3afController implements ToolController {
     		alert.setSeverity(w3afAlert.getSeverity());
     		alert.setSolution(w3afAlert.getFixGuidance());
     		
-    		ScanAttack attack = new ScanAttack();
+    		AlertAttack attack = new AlertAttack();
     		attack.setParam(w3afAlert.getVar());
 			String evidence = "";
     		List<String> highlights = w3afAlert.getHighlight();
@@ -219,10 +261,10 @@ public class W3afController implements ToolController {
 			}
     		alert.setAttack(attack);
     		
-    		List<Reference> references = new ArrayList<>();
+    		List<AlertReference> references = new ArrayList<>();
     		
     		// CWE
-    		Reference reference = new Reference();
+    		AlertReference reference = new AlertReference();
     		if (w3afAlert.getCweIds() != null) {
     			int i = 0;
     			for (String id : w3afAlert.getCweIds()) {
@@ -253,7 +295,7 @@ public class W3afController implements ToolController {
     		// URL references
     		if (w3afAlert.getReferences() != null) {
     			for (W3afScanAlert.Reference ref : w3afAlert.getReferences()) {
-    				reference = new Reference();
+    				reference = new AlertReference();
     				reference.setSource(ref.getTitle());
     				reference.setUrl(ref.getUrl());
     				references.add(reference);
@@ -263,7 +305,7 @@ public class W3afController implements ToolController {
     		// OWASP Top 10
     		if (w3afAlert.getOwaspTop10Refs() != null) {
     			for (OwaspTop10 ref : w3afAlert.getOwaspTop10Refs()) {
-    				reference = new Reference();
+    				reference = new AlertReference();
     				reference.setSource("OWASP Top 10 " + ref.getOwaspVersion());
     				reference.setId("" + ref.getId());
     				reference.setUrl(ref.getUrl());

@@ -3,6 +3,8 @@ package com.websectester.model;
 public class ScanRequest {
 
 	private String url;
+	
+	private ScanAuth auth;
 
 
 	public ScanRequest() {
@@ -19,6 +21,14 @@ public class ScanRequest {
 
 	public void setUrl(String url) {
 		this.url = url;
+	}
+
+	public ScanAuth getAuth() {
+		return auth;
+	}
+
+	public void setAuth(ScanAuth auth) {
+		this.auth = auth;
 	}
 	
 }

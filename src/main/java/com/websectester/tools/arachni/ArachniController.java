@@ -1,8 +1,12 @@
 package com.websectester.tools.arachni;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,9 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import com.websectester.model.Reference;
+import com.websectester.model.AlertReference;
 import com.websectester.model.ScanAlert;
-import com.websectester.model.ScanAttack;
+import com.websectester.model.AlertAttack;
 import com.websectester.model.ScanReport;
 import com.websectester.model.ScanRequest;
 import com.websectester.model.ScanResponse;
@@ -62,12 +66,34 @@ public class ArachniController implements ToolController {
     @Override
     @RequestMapping(value = "/scans", method = RequestMethod.POST,
     		consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ScanResponse startScan(@RequestBody ScanRequest scanRequest) {
+    public ScanResponse startScan(@RequestBody ScanRequest scanRequest, HttpServletResponse response) {
     	logger.info("Arachni Scan: " + scanRequest.getUrl());
 
     	ArachniScanRequest arachniRequest = new ArachniScanRequest();
     	arachniRequest.setUrl(scanRequest.getUrl());
     	arachniRequest.getChecks().add("*");
+    	
+    	// Authentication
+    	if (scanRequest.getAuth() != null) {
+    		if (checkAuthParameters(scanRequest)) {
+    			arachniRequest.setAuthUrl(scanRequest.getAuth().getAuthUrl());
+    			arachniRequest.setAuthParameters(
+    					scanRequest.getAuth().getUsernameField(),
+    					scanRequest.getAuth().getPasswordField(),
+    					scanRequest.getAuth().getUsername(),
+    					scanRequest.getAuth().getPassword());
+    			arachniRequest.setAuthCheckLoggedInString(scanRequest.getAuth().getCheckLoggedInString());
+    		}
+    		else {
+    			try {
+					response.sendError(HttpStatus.SC_BAD_REQUEST, "Missing required authentication parameters "
+							+ "(authUrl, usernameField, passwordField, username, password, checkLoggedInString)");
+					return new ScanResponse();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+    		}
+    	}
     	
     	HttpEntity<ArachniScanRequest> request = new HttpEntity<>(arachniRequest);
     	ArachniScan arachniScan = restTemplate.postForObject(getServiceUrl(), request, ArachniScan.class);
@@ -80,11 +106,23 @@ public class ArachniController implements ToolController {
     	return scanResponse;
     }
     
+    private boolean checkAuthParameters(ScanRequest scanRequest) {
+		if ((scanRequest.getAuth().getAuthUrl() == null) ||
+			(scanRequest.getAuth().getUsernameField() == null) ||	
+			(scanRequest.getAuth().getPasswordField() == null) ||	
+			(scanRequest.getAuth().getUsername() == null) ||	
+			(scanRequest.getAuth().getPassword() == null) ||	
+			(scanRequest.getAuth().getCheckLoggedInString() == null)) {	
+			return false;
+		}
+		return true;
+    }
+    
     @Override
     @RequestMapping(value = "/scans/{scanId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ScanStatus getScanStatus(@PathVariable (required = true) String scanId) {
     	
-    	ArachniScanStatus arachniStatus = restTemplate.getForObject(getServiceUrl() + "/" + scanId,
+    	ArachniScanStatus arachniStatus = restTemplate.getForObject(getServiceUrl() + "/" + scanId + "/summary",
     			ArachniScanStatus.class);
     	
     	ScanStatus status = new ScanStatus();
@@ -137,14 +175,14 @@ public class ArachniController implements ToolController {
 	    		alert.setSeverity(arachniAlert.getSeverity());
 	    		alert.setSolution(arachniAlert.getRemedyGuidance());
 	    		
-	    		ScanAttack attack = new ScanAttack();
+	    		AlertAttack attack = new AlertAttack();
 	    		attack.setParam(arachniAlert.getParam());
 	    		attack.setEvidence(arachniAlert.getProof());
 	    		alert.setAttack(attack);
 	    		
-	    		List<Reference> references = new ArrayList<>();
+	    		List<AlertReference> references = new ArrayList<>();
 	    		
-	    		Reference reference = new Reference();
+	    		AlertReference reference = new AlertReference();
 	    		// CWE
 	    		if ((arachniAlert.getCwe() != null) && !arachniAlert.getCwe().isEmpty()) {
 		    		reference.setSource("CWE");
@@ -156,7 +194,7 @@ public class ArachniController implements ToolController {
 	    		// Other
 	    		if ((arachniAlert.getReferences() != null) && (arachniAlert.getReferences().getProperties() != null)) {
 	    			for (String source : arachniAlert.getReferences().getProperties().keySet()) {
-			    		reference = new Reference();
+			    		reference = new AlertReference();
 			    		reference.setSource(source);
 			    		reference.setUrl(arachniAlert.getReferences().getProperties().get(source));
 			    		references.add(reference);

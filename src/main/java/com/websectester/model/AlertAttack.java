@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(NON_NULL)
-public class ScanAttack {
+public class AlertAttack {
 
 	public static class Attributes {
 		
