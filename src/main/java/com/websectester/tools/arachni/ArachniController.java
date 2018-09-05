@@ -22,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.websectester.model.AlertReference;
 import com.websectester.model.ScanAlert;
+import com.websectester.model.ScanAuth;
 import com.websectester.model.AlertAttack;
 import com.websectester.model.ScanReport;
 import com.websectester.model.ScanRequest;
@@ -84,13 +85,14 @@ public class ArachniController implements ToolController {
     	
     	// Authentication
     	if (scanRequest.getAuth() != null) {
-    		if (checkAuthParameters(scanRequest)) {
+    		ScanAuth scanAuth = scanRequest.getAuth();
+    		if (authParamsValid(scanAuth)) {
     			arachniRequest.setAuthUrl(scanRequest.getAuth().getAuthUrl());
     			arachniRequest.setAuthParameters(
-    					scanRequest.getAuth().getUsernameField(),
-    					scanRequest.getAuth().getPasswordField(),
-    					scanRequest.getAuth().getUsername(),
-    					scanRequest.getAuth().getPassword());
+    					scanAuth.getUsernameField(),
+    					scanAuth.getPasswordField(),
+    					scanAuth.getUsername(),
+    					scanAuth.getPassword());
     			arachniRequest.setAuthCheckLoggedInString(scanRequest.getAuth().getCheckLoggedInString());
     		}
     		else {
@@ -115,13 +117,13 @@ public class ArachniController implements ToolController {
     	return scanResponse;
     }
     
-    private boolean checkAuthParameters(ScanRequest scanRequest) {
-		if ((scanRequest.getAuth().getAuthUrl() == null) ||
-			(scanRequest.getAuth().getUsernameField() == null) ||	
-			(scanRequest.getAuth().getPasswordField() == null) ||	
-			(scanRequest.getAuth().getUsername() == null) ||	
-			(scanRequest.getAuth().getPassword() == null) ||	
-			(scanRequest.getAuth().getCheckLoggedInString() == null)) {	
+    private boolean authParamsValid(ScanAuth scanAuth) {
+		if ((scanAuth.getAuthUrl() == null) ||
+			(scanAuth.getUsernameField() == null) ||	
+			(scanAuth.getPasswordField() == null) ||	
+			(scanAuth.getUsername() == null) ||	
+			(scanAuth.getPassword() == null) ||	
+			(scanAuth.getCheckLoggedInString() == null)) {	
 			return false;
 		}
 		return true;

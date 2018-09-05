@@ -24,6 +24,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.websectester.model.AlertReference;
 import com.websectester.model.ScanAlert;
+import com.websectester.model.ScanAuth;
 import com.websectester.model.AlertAttack;
 import com.websectester.model.ScanReport;
 import com.websectester.model.ScanRequest;
@@ -41,6 +42,8 @@ public class ZapController implements ToolController {
 	private static final int POLLING_SPIDER_STATUS_INTERVAL = 1000;
 	
 	private static final String SPIDER_STATUS_PREFIX = "SPIDER_";
+	private static final String AUTH_CONTEXT_PREFIX = "Context";
+	private static final String AUTH_USER_PREFIX = "User";
 	
     Logger logger = LoggerFactory.getLogger(this.getClass());
 	
@@ -71,7 +74,12 @@ public class ZapController implements ToolController {
 	 * Maps spider scan IDs with their corresponding active scan IDs
 	 */
 	Map<Long, Long> spiderScans;
-    
+	
+	/**
+	 * Maps authorized spider scan IDs with their corresponding contextId and userId (needed to start the active scan)
+	 */
+	Map<Long, String> scanContextIds;
+	Map<Long, String> scanUserIds;
     
 	String serviceHost;
 	
@@ -99,6 +107,8 @@ public class ZapController implements ToolController {
 		super();
 		this.restTemplate = new RestTemplate();
 		this.spiderScans = new HashMap<>();
+		this.scanContextIds = new HashMap<>();
+		this.scanUserIds = new HashMap<>();
 	}
     
     protected String getServiceUrl() {
@@ -120,13 +130,173 @@ public class ZapController implements ToolController {
 			}
     	}
     	
-    	ZapScan spiderScan = restTemplate.getForObject(
+    	// Authentication
+    	String contextId = null;
+    	String userId = null;
+    	if (scanRequest.getAuth() != null) {
+    		ScanAuth scanAuth = scanRequest.getAuth();
+    		if (authParamsValid(scanAuth)) {
+    			long randomNumber = (long) (Math.random() * 1000000);
+    			String contextName = AUTH_CONTEXT_PREFIX + randomNumber;
+    			String userName = AUTH_USER_PREFIX + randomNumber;
+    			
+    			// Create new authentication context
+    			ZapContext zapContext = restTemplate.getForObject(
+    	    			getServiceUrl() + "context/action/newContext/?contextName=" + contextName, ZapContext.class);
+    			if ((zapContext == null) || (zapContext.getContextId() == null)) {
+    				try {
+    					response.sendError(HttpStatus.BAD_REQUEST.value(),
+    							"Error creating authorization context: " + contextName);
+    					return new ScanResponse();
+    				} catch (IOException e) {
+    					e.printStackTrace();
+    				}
+    			}
+    			contextId = zapContext.getContextId();
+
+    			// Include scan URL in context (with regex:  url.*)
+    			Map<String, String> uriVariables = new HashMap<>();
+    			uriVariables.put("contextName", contextName);
+    			uriVariables.put("regex", scanRequest.getUrl() + ".*");
+    			ZapResult zapResult = restTemplate.getForObject(getServiceUrl() + "context/action/includeInContext/" +
+    					"?contextName={contextName}" +
+    					"&regex={regex}", ZapResult.class, uriVariables);
+    			if ((zapResult == null) || !zapResult.isOK()) {
+    				try {
+    					response.sendError(HttpStatus.BAD_REQUEST.value(),
+    							"Error including URL in authorization context: " + contextName);
+    					return new ScanResponse();
+    				} catch (IOException e) {
+    					e.printStackTrace();
+    				}
+    			}
+    			
+    			// Set authentication method and authentication params (form fields pattern)
+    			String authMethod = "formBasedAuthentication";
+    			String configParams = "loginUrl=" + scanAuth.getAuthUrl() + "&loginRequestData=" + 
+    					scanAuth.getUsernameField() + "%3D%7B%25username%25%7D%26" +
+    					scanAuth.getPasswordField() + "%3D%7B%25password%25%7D";
+    			
+    			zapResult = restTemplate.getForObject(getServiceUrl() + "authentication/action/setAuthenticationMethod/" +
+    					"?contextId=" + contextId +
+    					"&authMethodName=" + authMethod +
+    					"&authMethodConfigParams=" + configParams, ZapResult.class);
+    			if ((zapResult == null) || !zapResult.isOK()) {
+    				try {
+    					response.sendError(HttpStatus.BAD_REQUEST.value(), "Error setting auth method and config params");
+    					return new ScanResponse();
+    				} catch (IOException e) {
+    					e.printStackTrace();
+    				}
+    			}
+
+    			// Set logged in indicator (regex)
+    			zapResult = restTemplate.getForObject(getServiceUrl() + "authentication/action/setLoggedInIndicator/" +
+    					"?contextId=" + contextId +
+    					"&loggedInIndicatorRegex=" + scanAuth.getCheckLoggedInString(), ZapResult.class);
+    			if ((zapResult == null) || !zapResult.isOK()) {
+    				try {
+    					response.sendError(HttpStatus.BAD_REQUEST.value(), "Error setting logged in indicator");
+    					return new ScanResponse();
+    				} catch (IOException e) {
+    					e.printStackTrace();
+    				}
+    			}
+    			
+    			// Set logged out indicator (regex)
+    			zapResult = restTemplate.getForObject(getServiceUrl() + "authentication/action/setLoggedOutIndicator/" +
+    					"?contextId=" + contextId +
+    					"&loggedOutIndicatorRegex=" + scanAuth.getCheckLoggedOutString(), ZapResult.class);
+    			if ((zapResult == null) || !zapResult.isOK()) {
+    				try {
+    					response.sendError(HttpStatus.BAD_REQUEST.value(), "Error setting logged out indicator");
+    					return new ScanResponse();
+    				} catch (IOException e) {
+    					e.printStackTrace();
+    				}
+    			}
+
+    			// Create authentication user
+    			ZapUser zapUser = restTemplate.getForObject(getServiceUrl() + "users/action/newUser/" + 
+    					"?contextId=" + contextId + "&name=" + userName, ZapUser.class);
+    			if ((zapUser == null) || (zapUser.getUserId() == null)) {
+    				try {
+    					response.sendError(HttpStatus.BAD_REQUEST.value(), "Error creating authorization user");
+    					return new ScanResponse();
+    				} catch (IOException e) {
+    					e.printStackTrace();
+    				}
+    			}
+    			userId = zapUser.getUserId();
+    			
+    			// Set user authentication credentials
+    			uriVariables = new HashMap<>();
+    			uriVariables.put("contextId", contextId);
+    			uriVariables.put("userId", userId);
+    			uriVariables.put("authCredentialsConfigParams", "username=" + scanAuth.getUsername() + "&password=" + scanAuth.getPassword());
+    			zapResult = restTemplate.getForObject(getServiceUrl() + "users/action/setAuthenticationCredentials/" +
+    					"?contextId={contextId}&userId={userId}&authCredentialsConfigParams={authCredentialsConfigParams}",
+    					ZapResult.class, uriVariables);
+    			if ((zapResult == null) || !zapResult.isOK()) {
+    				try {
+    					response.sendError(HttpStatus.BAD_REQUEST.value(), "Error setting user credentials");
+    					return new ScanResponse();
+    				} catch (IOException e) {
+    					e.printStackTrace();
+    				}
+    			}
+
+    			// Enable user
+    			zapResult = restTemplate.getForObject(getServiceUrl() + "users/action/setUserEnabled/" +
+    					"?contextId=" + contextId +
+    					"&userId=" + userId +
+    					"&enabled=true", ZapResult.class);
+    			if ((zapResult == null) || !zapResult.isOK()) {
+    				try {
+    					response.sendError(HttpStatus.BAD_REQUEST.value(), "Error enabling user");
+    					return new ScanResponse();
+    				} catch (IOException e) {
+    					e.printStackTrace();
+    				}
+    			}
+    		}
+    		else {
+    			try {
+					response.sendError(HttpStatus.BAD_REQUEST.value(), "Missing required authentication parameters "
+							+ "(authUrl, usernameField, passwordField, username, password,"
+							+ " checkLoggedInString, checkLoggedOutString)");
+					return new ScanResponse();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+    		}
+    	}
+    	
+    	boolean authorization = (contextId != null) && (userId != null);
+    	
+    	// Spider scan
+    	ZapScan spiderScan;
+    	if (authorization) {
+    		spiderScan = restTemplate.getForObject(getServiceUrl() + "spider/action/scanAsUser/" +
+    				"?contextId=" + contextId +
+    				"&userId=" + userId +
+    				"&url=" + scanRequest.getUrl(), ZapScan.class);
+    	}
+    	else {
+    		spiderScan = restTemplate.getForObject(
     			getServiceUrl() + "spider/action/scan/?url=" + scanRequest.getUrl(), ZapScan.class);
+    	}
 
     	Long spiderScanId = spiderScan.getScanId();
     	logger.info("ZAP Spider Scan ID: " + spiderScanId);
     	
     	spiderScans.put(spiderScanId, NOT_STARTED_ACTIVE_SCAN_ID);
+    	
+    	if (authorization) {
+    		// Authorization scan
+    		scanContextIds.put(spiderScanId, contextId);
+    		scanUserIds.put(spiderScanId, userId);
+    	}
 
     	Thread spiderThread = new Thread(new SpiderThread(spiderScanId, scanRequest));
     	spiderThread.start();
@@ -137,6 +307,19 @@ public class ZapController implements ToolController {
     	return scanResponse;
     }
     
+	private boolean authParamsValid(ScanAuth scanAuth) {
+		if ((scanAuth.getAuthUrl() == null) ||
+			(scanAuth.getUsernameField() == null) ||	
+			(scanAuth.getPasswordField() == null) ||	
+			(scanAuth.getUsername() == null) ||	
+			(scanAuth.getPassword() == null) ||	
+			(scanAuth.getCheckLoggedInString() == null) ||
+			(scanAuth.getCheckLoggedOutString() == null)) {	
+			return false;
+		}
+		return true;
+    }
+
 	private void startScanAfterSpider(Long spiderScanId, ScanRequest scanRequest) {
 		ScanStatus status = new ScanStatus();
 		
@@ -157,8 +340,24 @@ public class ZapController implements ToolController {
     	// Spider finished, starting active scan
     	logger.info("ZAP Active Scan: " + scanRequest.getUrl());
 
-    	ZapScan zapScan = restTemplate.getForObject(
-    			getServiceUrl() + "ascan/action/scan/?url=" + scanRequest.getUrl(), ZapScan.class);
+    	// Check if it's an authorized scan
+    	String contextId = scanContextIds.get(spiderScanId);
+    	String userId = scanUserIds.get(spiderScanId);
+    	boolean authorization = (contextId != null) && (userId != null);
+    	
+    	// Start active scan or authorized active scan
+    	ZapScan zapScan; 
+    	
+    	if (authorization) {
+    		zapScan = restTemplate.getForObject(getServiceUrl() + "ascan/action/scanAsUser/" +
+    				"?url=" + scanRequest.getUrl() +
+    				"&contextId=" + contextId +
+    				"&userId=" + userId, ZapScan.class);
+    	}
+    	else {
+    		zapScan = restTemplate.getForObject(getServiceUrl() + "ascan/action/scan/?url=" + scanRequest.getUrl(),
+    				ZapScan.class);
+    	}
     	
     	spiderScans.put(spiderScanId, zapScan.getScanId());
     	

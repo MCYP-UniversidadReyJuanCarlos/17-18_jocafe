@@ -26,6 +26,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.websectester.model.AlertReference;
 import com.websectester.model.ScanAlert;
+import com.websectester.model.ScanAuth;
 import com.websectester.model.AlertAttack;
 import com.websectester.model.ScanReport;
 import com.websectester.model.ScanRequest;
@@ -115,15 +116,16 @@ public class W3afController implements ToolController {
 
     	// Authentication
     	if (scanRequest.getAuth() != null) {
-    		if (checkAuthParameters(scanRequest)) {
+    		ScanAuth scanAuth = scanRequest.getAuth();
+    		if (authParamsValid(scanAuth)) {
     			String authProfile = "\n\n[auth.generic]\n";
-    			authProfile += "\nauth_url = " + scanRequest.getAuth().getAuthUrl();
-    			authProfile += "\nusername_field = " + scanRequest.getAuth().getUsernameField();
-				authProfile += "\npassword_field = " + scanRequest.getAuth().getPasswordField();
-				authProfile += "\nusername = " + scanRequest.getAuth().getUsername();
-				authProfile += "\npassword = " + scanRequest.getAuth().getPassword();
-				authProfile += "\ncheck_url = " + scanRequest.getAuth().getCheckLoggedInUrl();
-				authProfile += "\ncheck_string = " + scanRequest.getAuth().getCheckLoggedInString();
+    			authProfile += "\nauth_url = " + scanAuth.getAuthUrl();
+    			authProfile += "\nusername_field = " + scanAuth.getUsernameField();
+				authProfile += "\npassword_field = " + scanAuth.getPasswordField();
+				authProfile += "\nusername = " + scanAuth.getUsername();
+				authProfile += "\npassword = " + scanAuth.getPassword();
+				authProfile += "\ncheck_url = " + scanAuth.getCheckLoggedInUrl();
+				authProfile += "\ncheck_string = " + scanAuth.getCheckLoggedInString();
 				authProfile += "\n\n";
 				w3afRequest.setScanProfile(w3afRequest.getScanProfile() + authProfile);
     		}
@@ -152,14 +154,14 @@ public class W3afController implements ToolController {
     	return scanResponse;
     }
     
-    private boolean checkAuthParameters(ScanRequest scanRequest) {
-		if ((scanRequest.getAuth().getAuthUrl() == null) ||
-			(scanRequest.getAuth().getUsernameField() == null) ||	
-			(scanRequest.getAuth().getPasswordField() == null) ||	
-			(scanRequest.getAuth().getUsername() == null) ||	
-			(scanRequest.getAuth().getPassword() == null) ||	
-			(scanRequest.getAuth().getCheckLoggedInUrl() == null) ||	
-			(scanRequest.getAuth().getCheckLoggedInString() == null)) {	
+    private boolean authParamsValid(ScanAuth scanAuth) {
+		if ((scanAuth.getAuthUrl() == null) ||
+			(scanAuth.getUsernameField() == null) ||	
+			(scanAuth.getPasswordField() == null) ||	
+			(scanAuth.getUsername() == null) ||	
+			(scanAuth.getPassword() == null) ||	
+			(scanAuth.getCheckLoggedInUrl() == null) ||	
+			(scanAuth.getCheckLoggedInString() == null)) {	
 			return false;
 		}
 		return true;
