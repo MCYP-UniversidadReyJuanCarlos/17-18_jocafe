@@ -10,11 +10,11 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -87,6 +87,15 @@ public class W3afController implements ToolController {
     public ScanResponse startScan(@RequestBody ScanRequest scanRequest, HttpServletResponse response) {
     	logger.info("W3af Scan: " + scanRequest.getUrl());
     	
+    	if ((scanRequest.getUrl() == null) || scanRequest.getUrl().isEmpty()) {
+			try {
+				response.sendError(HttpStatus.BAD_REQUEST.value(), "Missing required parameter: url");
+				return new ScanResponse();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+    	}
+    	
     	// The current W3af REST API implementation does not allow users to run more than one concurrent scan.
     	// Get previous scans list to delete them
     	W3afScanList scanList = restTemplate.getForObject(getServiceUrl(), W3afScanList.class);
@@ -120,7 +129,7 @@ public class W3afController implements ToolController {
     		}
     		else {
     			try {
-					response.sendError(HttpStatus.SC_BAD_REQUEST, "Missing required authentication parameters "
+					response.sendError(HttpStatus.BAD_REQUEST.value(), "Missing required authentication parameters "
 							+ "(authUrl, usernameField, passwordField, username, password,"
 							+ " checkLoggedInUrl, checkLoggedInString)");
 					return new ScanResponse();
