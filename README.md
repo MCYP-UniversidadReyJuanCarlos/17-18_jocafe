@@ -1,4 +1,4 @@
-# WebSecTester
+# WebSecTester    [![Build Status](https://travis-ci.com/j-cascan/17-18_jocafe.svg?branch=master)](https://travis-ci.com/j-cascan/17-18_jocafe)
 
 ## Unified management of web vulnerability analysis tools using REST API and Docker containers
 
