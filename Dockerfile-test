@@ -24,9 +24,9 @@ COPY --from=arachni /arachni /arachni
 COPY src /code/src/
 COPY pom.xml /code/
 
-# Maven dependency download, to speed up container execution
+# Run Maven job, to download dependencies and speed up container executions
 WORKDIR /code
-RUN mvn dependency:resolve
+RUN mvn clean package -Dmaven.test.skip=true
 
 # Copy and run test script (start scan tools and execute tests)
 COPY start-test.sh start-test.sh
