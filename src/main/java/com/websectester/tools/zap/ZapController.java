@@ -115,196 +115,13 @@ public class ZapController implements ToolController {
     	return serviceHost + ":" + servicePort + "/" + serviceContext;
     }
     
-    @Override
-	@RequestMapping(value = "/scans", method = RequestMethod.POST,
-    		consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ScanResponse startScan(@RequestBody ScanRequest scanRequest, HttpServletResponse response) {
-    	logger.info("ZAP Spider Scan: " + scanRequest.getUrl());
-
-    	if ((scanRequest.getUrl() == null) || scanRequest.getUrl().isEmpty()) {
-			try {
-				response.sendError(HttpStatus.BAD_REQUEST.value(), "Missing required parameter: url");
-				return new ScanResponse();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-    	}
-    	
-    	// Authentication
-    	String contextId = null;
-    	String userId = null;
-    	if (scanRequest.getAuth() != null) {
-    		ScanAuth scanAuth = scanRequest.getAuth();
-    		if (authParamsValid(scanAuth)) {
-    			long randomNumber = (long) (Math.random() * 1000000);
-    			String contextName = AUTH_CONTEXT_PREFIX + randomNumber;
-    			String userName = AUTH_USER_PREFIX + randomNumber;
-    			
-    			// Create new authentication context
-    			ZapContext zapContext = restTemplate.getForObject(
-    	    			getServiceUrl() + "context/action/newContext/?contextName=" + contextName, ZapContext.class);
-    			if ((zapContext == null) || (zapContext.getContextId() == null)) {
-    				try {
-    					response.sendError(HttpStatus.BAD_REQUEST.value(),
-    							"Error creating authorization context: " + contextName);
-    					return new ScanResponse();
-    				} catch (IOException e) {
-    					e.printStackTrace();
-    				}
-    			}
-    			contextId = zapContext.getContextId();
-
-    			// Include scan URL in context (with regex:  url.*)
-    			Map<String, String> uriVariables = new HashMap<>();
-    			uriVariables.put("contextName", contextName);
-    			uriVariables.put("regex", scanRequest.getUrl() + ".*");
-    			ZapResult zapResult = restTemplate.getForObject(getServiceUrl() + "context/action/includeInContext/" +
-    					"?contextName={contextName}" +
-    					"&regex={regex}", ZapResult.class, uriVariables);
-    			if ((zapResult == null) || !zapResult.isOK()) {
-    				try {
-    					response.sendError(HttpStatus.BAD_REQUEST.value(),
-    							"Error including URL in authorization context: " + contextName);
-    					return new ScanResponse();
-    				} catch (IOException e) {
-    					e.printStackTrace();
-    				}
-    			}
-    			
-    			// Set authentication method and authentication params (form fields pattern)
-    			String authMethod = "formBasedAuthentication";
-    			String configParams = "loginUrl=" + scanAuth.getAuthUrl() + "&loginRequestData=" + 
-    					scanAuth.getUsernameField() + "%3D%7B%25username%25%7D%26" +
-    					scanAuth.getPasswordField() + "%3D%7B%25password%25%7D";
-    			
-    			zapResult = restTemplate.getForObject(getServiceUrl() + "authentication/action/setAuthenticationMethod/" +
-    					"?contextId=" + contextId +
-    					"&authMethodName=" + authMethod +
-    					"&authMethodConfigParams=" + configParams, ZapResult.class);
-    			if ((zapResult == null) || !zapResult.isOK()) {
-    				try {
-    					response.sendError(HttpStatus.BAD_REQUEST.value(), "Error setting auth method and config params");
-    					return new ScanResponse();
-    				} catch (IOException e) {
-    					e.printStackTrace();
-    				}
-    			}
-
-    			// Set logged in indicator (regex)
-    			zapResult = restTemplate.getForObject(getServiceUrl() + "authentication/action/setLoggedInIndicator/" +
-    					"?contextId=" + contextId +
-    					"&loggedInIndicatorRegex=" + scanAuth.getCheckLoggedInString(), ZapResult.class);
-    			if ((zapResult == null) || !zapResult.isOK()) {
-    				try {
-    					response.sendError(HttpStatus.BAD_REQUEST.value(), "Error setting logged in indicator");
-    					return new ScanResponse();
-    				} catch (IOException e) {
-    					e.printStackTrace();
-    				}
-    			}
-    			
-    			// Set logged out indicator (regex)
-    			zapResult = restTemplate.getForObject(getServiceUrl() + "authentication/action/setLoggedOutIndicator/" +
-    					"?contextId=" + contextId +
-    					"&loggedOutIndicatorRegex=" + scanAuth.getCheckLoggedOutString(), ZapResult.class);
-    			if ((zapResult == null) || !zapResult.isOK()) {
-    				try {
-    					response.sendError(HttpStatus.BAD_REQUEST.value(), "Error setting logged out indicator");
-    					return new ScanResponse();
-    				} catch (IOException e) {
-    					e.printStackTrace();
-    				}
-    			}
-
-    			// Create authentication user
-    			ZapUser zapUser = restTemplate.getForObject(getServiceUrl() + "users/action/newUser/" + 
-    					"?contextId=" + contextId + "&name=" + userName, ZapUser.class);
-    			if ((zapUser == null) || (zapUser.getUserId() == null)) {
-    				try {
-    					response.sendError(HttpStatus.BAD_REQUEST.value(), "Error creating authorization user");
-    					return new ScanResponse();
-    				} catch (IOException e) {
-    					e.printStackTrace();
-    				}
-    			}
-    			userId = zapUser.getUserId();
-    			
-    			// Set user authentication credentials
-    			uriVariables = new HashMap<>();
-    			uriVariables.put("contextId", contextId);
-    			uriVariables.put("userId", userId);
-    			uriVariables.put("authCredentialsConfigParams", "username=" + scanAuth.getUsername() + "&password=" + scanAuth.getPassword());
-    			zapResult = restTemplate.getForObject(getServiceUrl() + "users/action/setAuthenticationCredentials/" +
-    					"?contextId={contextId}&userId={userId}&authCredentialsConfigParams={authCredentialsConfigParams}",
-    					ZapResult.class, uriVariables);
-    			if ((zapResult == null) || !zapResult.isOK()) {
-    				try {
-    					response.sendError(HttpStatus.BAD_REQUEST.value(), "Error setting user credentials");
-    					return new ScanResponse();
-    				} catch (IOException e) {
-    					e.printStackTrace();
-    				}
-    			}
-
-    			// Enable user
-    			zapResult = restTemplate.getForObject(getServiceUrl() + "users/action/setUserEnabled/" +
-    					"?contextId=" + contextId +
-    					"&userId=" + userId +
-    					"&enabled=true", ZapResult.class);
-    			if ((zapResult == null) || !zapResult.isOK()) {
-    				try {
-    					response.sendError(HttpStatus.BAD_REQUEST.value(), "Error enabling user");
-    					return new ScanResponse();
-    				} catch (IOException e) {
-    					e.printStackTrace();
-    				}
-    			}
-    		}
-    		else {
-    			try {
-					response.sendError(HttpStatus.BAD_REQUEST.value(), "Missing required authentication parameters "
-							+ "(authUrl, usernameField, passwordField, username, password,"
-							+ " checkLoggedInString, checkLoggedOutString)");
-					return new ScanResponse();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-    		}
-    	}
-    	
-    	boolean authorization = (contextId != null) && (userId != null);
-    	
-    	// Spider scan
-    	ZapScan spiderScan;
-    	if (authorization) {
-    		spiderScan = restTemplate.getForObject(getServiceUrl() + "spider/action/scanAsUser/" +
-    				"?contextId=" + contextId +
-    				"&userId=" + userId +
-    				"&url=" + scanRequest.getUrl(), ZapScan.class);
-    	}
-    	else {
-    		spiderScan = restTemplate.getForObject(
-    			getServiceUrl() + "spider/action/scan/?url=" + scanRequest.getUrl(), ZapScan.class);
-    	}
-
-    	Long spiderScanId = spiderScan.getScanId();
-    	logger.info("ZAP Spider Scan ID: " + spiderScanId);
-    	
-    	spiderScans.put(spiderScanId, NOT_STARTED_ACTIVE_SCAN_ID);
-    	
-    	if (authorization) {
-    		// Authorization scan
-    		scanContextIds.put(spiderScanId, contextId);
-    		scanUserIds.put(spiderScanId, userId);
-    	}
-
-    	Thread spiderThread = new Thread(new SpiderThread(spiderScanId, scanRequest));
-    	spiderThread.start();
-    	
-    	ScanResponse scanResponse = new ScanResponse();
-    	scanResponse.setScanId("" + spiderScan.getScanId());
-    	
-    	return scanResponse;
+    private void sendError(HttpServletResponse response, HttpStatus status, String message) {
+    	logger.error(message);
+    	try {
+			response.sendError(status.value(), message);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
     
 	private boolean authParamsValid(ScanAuth scanAuth) {
@@ -384,17 +201,166 @@ public class ZapController implements ToolController {
     }
 
     @Override
+	@RequestMapping(value = "/scans", method = RequestMethod.POST,
+    		consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ScanResponse startScan(@RequestBody ScanRequest scanRequest, HttpServletResponse response) {
+    	logger.info("ZAP Spider Scan: " + scanRequest.getUrl());
+
+    	if ((scanRequest.getUrl() == null) || scanRequest.getUrl().isEmpty()) {
+			sendError(response, HttpStatus.BAD_REQUEST, "Missing required parameter: url");
+			return new ScanResponse();
+    	}
+    	
+    	// Authentication
+    	String contextId = null;
+    	String userId = null;
+    	if (scanRequest.getAuth() != null) {
+    		ScanAuth scanAuth = scanRequest.getAuth();
+    		if (authParamsValid(scanAuth)) {
+    			long randomNumber = (long) (Math.random() * 1000000);
+    			String contextName = AUTH_CONTEXT_PREFIX + randomNumber;
+    			String userName = AUTH_USER_PREFIX + randomNumber;
+    			
+    			// Create new authentication context
+    			ZapContext zapContext = restTemplate.getForObject(
+    	    			getServiceUrl() + "context/action/newContext/?contextName=" + contextName, ZapContext.class);
+    			if ((zapContext == null) || (zapContext.getContextId() == null)) {
+					sendError(response, HttpStatus.BAD_REQUEST, "Error creating authorization context");
+					return new ScanResponse();
+    			}
+    			contextId = zapContext.getContextId();
+
+    			// Include scan URL in context (with regex:  url.*)
+    			Map<String, String> uriVariables = new HashMap<>();
+    			uriVariables.put("contextName", contextName);
+    			uriVariables.put("regex", scanRequest.getUrl() + ".*");
+    			ZapResult zapResult = restTemplate.getForObject(getServiceUrl() + "context/action/includeInContext/" +
+    					"?contextName={contextName}" +
+    					"&regex={regex}", ZapResult.class, uriVariables);
+    			if ((zapResult == null) || !zapResult.isOK()) {
+					sendError(response, HttpStatus.BAD_REQUEST, "Error including URL in authorization context");
+					return new ScanResponse();
+    			}
+    			
+    			// Set authentication method and authentication params (form fields pattern)
+    			String authMethod = "formBasedAuthentication";
+    			String configParams = "loginUrl=" + scanAuth.getAuthUrl() + "&loginRequestData=" + 
+    					scanAuth.getUsernameField() + "%3D%7B%25username%25%7D%26" +
+    					scanAuth.getPasswordField() + "%3D%7B%25password%25%7D";
+    			
+    			zapResult = restTemplate.getForObject(getServiceUrl() + "authentication/action/setAuthenticationMethod/" +
+    					"?contextId=" + contextId +
+    					"&authMethodName=" + authMethod +
+    					"&authMethodConfigParams=" + configParams, ZapResult.class);
+    			if ((zapResult == null) || !zapResult.isOK()) {
+					sendError(response, HttpStatus.BAD_REQUEST, "Error setting auth method and config params");
+					return new ScanResponse();
+    			}
+
+    			// Set logged in indicator (regex)
+    			zapResult = restTemplate.getForObject(getServiceUrl() + "authentication/action/setLoggedInIndicator/" +
+    					"?contextId=" + contextId +
+    					"&loggedInIndicatorRegex=" + scanAuth.getCheckLoggedInString(), ZapResult.class);
+    			if ((zapResult == null) || !zapResult.isOK()) {
+					sendError(response, HttpStatus.BAD_REQUEST, "Error setting loggedIn indicator");
+					return new ScanResponse();
+    			}
+    			
+    			// Set logged out indicator (regex)
+    			zapResult = restTemplate.getForObject(getServiceUrl() + "authentication/action/setLoggedOutIndicator/" +
+    					"?contextId=" + contextId +
+    					"&loggedOutIndicatorRegex=" + scanAuth.getCheckLoggedOutString(), ZapResult.class);
+    			if ((zapResult == null) || !zapResult.isOK()) {
+					sendError(response, HttpStatus.BAD_REQUEST, "Error setting loggedOut indicator");
+					return new ScanResponse();
+    			}
+
+    			// Create authentication user
+    			ZapUser zapUser = restTemplate.getForObject(getServiceUrl() + "users/action/newUser/" + 
+    					"?contextId=" + contextId + "&name=" + userName, ZapUser.class);
+    			if ((zapUser == null) || (zapUser.getUserId() == null)) {
+					sendError(response, HttpStatus.BAD_REQUEST, "Error creating authorization user");
+					return new ScanResponse();
+    			}
+    			userId = zapUser.getUserId();
+    			
+    			// Set user authentication credentials
+    			uriVariables = new HashMap<>();
+    			uriVariables.put("contextId", contextId);
+    			uriVariables.put("userId", userId);
+    			uriVariables.put("authCredentialsConfigParams", "username=" + scanAuth.getUsername() + "&password=" + scanAuth.getPassword());
+    			zapResult = restTemplate.getForObject(getServiceUrl() + "users/action/setAuthenticationCredentials/" +
+    					"?contextId={contextId}&userId={userId}&authCredentialsConfigParams={authCredentialsConfigParams}",
+    					ZapResult.class, uriVariables);
+    			if ((zapResult == null) || !zapResult.isOK()) {
+					sendError(response, HttpStatus.BAD_REQUEST, "Error setting user credentials");
+					return new ScanResponse();
+    			}
+
+    			// Enable user
+    			zapResult = restTemplate.getForObject(getServiceUrl() + "users/action/setUserEnabled/" +
+    					"?contextId=" + contextId +
+    					"&userId=" + userId +
+    					"&enabled=true", ZapResult.class);
+    			if ((zapResult == null) || !zapResult.isOK()) {
+					sendError(response, HttpStatus.BAD_REQUEST, "Error enabling user");
+					return new ScanResponse();
+    			}
+    		}
+    		else {
+				sendError(response, HttpStatus.BAD_REQUEST, "Missing required authentication parameters "
+						+ "(authUrl, usernameField, passwordField, username, password,"
+						+ " checkLoggedInString, checkLoggedOutString)");
+				return new ScanResponse();
+    		}
+    	}
+    	
+    	boolean authorization = (contextId != null) && (userId != null);
+    	
+    	// Spider scan
+    	ZapScan spiderScan;
+    	if (authorization) {
+    		spiderScan = restTemplate.getForObject(getServiceUrl() + "spider/action/scanAsUser/" +
+    				"?contextId=" + contextId +
+    				"&userId=" + userId +
+    				"&url=" + scanRequest.getUrl(), ZapScan.class);
+    	}
+    	else {
+    		spiderScan = restTemplate.getForObject(
+    			getServiceUrl() + "spider/action/scan/?url=" + scanRequest.getUrl(), ZapScan.class);
+    	}
+
+    	Long spiderScanId = spiderScan.getScanId();
+    	logger.info("ZAP Spider Scan ID: " + spiderScanId);
+    	
+    	spiderScans.put(spiderScanId, NOT_STARTED_ACTIVE_SCAN_ID);
+    	
+    	if (authorization) {
+    		// Authorization scan
+    		scanContextIds.put(spiderScanId, contextId);
+    		scanUserIds.put(spiderScanId, userId);
+    	}
+
+    	Thread spiderThread = new Thread(new SpiderThread(spiderScanId, scanRequest));
+    	spiderThread.start();
+    	
+    	ScanResponse scanResponse = new ScanResponse();
+    	scanResponse.setScanId("" + spiderScan.getScanId());
+    	
+    	return scanResponse;
+    }
+    
+    @Override
     @RequestMapping(value = "/scans/{scanId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ScanStatus getScanStatus(@PathVariable (required = true) String scanId) {
+    public ScanStatus getScanStatus(@PathVariable (required = true) String scanId, HttpServletResponse response) {
     	ScanStatus status = null;
     	
     	Long spiderScanId = Long.valueOf(scanId);
     	// Public Scan ID is Spider Scan ID
     	if (!spiderScans.containsKey(spiderScanId)) {
     		// Error... no spider scan with that ID
-    		logger.info("ZAP Scan status: " + scanId + " - NULL");
-    		status = new ScanStatus();
-    		return status;
+    		sendError(response, HttpStatus.INTERNAL_SERVER_ERROR, "No ZAP scan with ID: " + scanId);
+    		return new ScanStatus();
     	}
 
     	Long activeScanId = spiderScans.get(spiderScanId); 
@@ -418,12 +384,11 @@ public class ZapController implements ToolController {
     	}
 
     	if (status == null) {
-    		logger.info("ZAP Scan status: " + scanId + " - NULL");
-    		status = new ScanStatus();
+    		sendError(response, HttpStatus.INTERNAL_SERVER_ERROR, "ZAP Scan with ID: " + scanId + " - Status NULL");
+    		return new ScanStatus();
     	}
     	else {
-    		logger.info("ZAP Scan status: " + scanId + " - " + status.getStatus() + ", " + status.getProgress() +
-    				"%");
+    		logger.info("ZAP Scan status: " + scanId + " - " + status.getStatus() + ", " + status.getProgress() + "%");
     	}
     	
     	return status;    	
@@ -432,13 +397,13 @@ public class ZapController implements ToolController {
     @Override
     @RequestMapping(value = "/scans/{scanId}/pause", method = RequestMethod.PUT,
     		produces = MediaType.APPLICATION_JSON_VALUE)
-    public ScanStatus pauseScan(@PathVariable (required = true) String scanId) {
+    public ScanStatus pauseScan(@PathVariable (required = true) String scanId, HttpServletResponse response) {
     	Long spiderScanId = Long.valueOf(scanId);
     	
     	// Public Scan ID is Spider Scan ID
     	if (!spiderScans.containsKey(spiderScanId)) {
     		// Error... no spider scan with that ID
-    		logger.info("ZAP Scan status: " + scanId + " - NULL");
+    		sendError(response, HttpStatus.INTERNAL_SERVER_ERROR, "No ZAP scan with ID: " + scanId);
     		return new ScanStatus();
     	}
     	
@@ -454,19 +419,19 @@ public class ZapController implements ToolController {
     		restTemplate.getForObject(getServiceUrl() + "ascan/action/pause/?scanId=" + activeScanId, Object.class);
     	}
 		
-		return getScanStatus(scanId);
+		return getScanStatus(scanId, response);
     }
     	
     @Override
     @RequestMapping(value = "/scans/{scanId}/resume", method = RequestMethod.PUT,
     		produces = MediaType.APPLICATION_JSON_VALUE)
-    public ScanStatus resumeScan(@PathVariable (required = true) String scanId) {
+    public ScanStatus resumeScan(@PathVariable (required = true) String scanId, HttpServletResponse response) {
     	Long spiderScanId = Long.valueOf(scanId);
     	
     	// Public Scan ID is Spider Scan ID
     	if (!spiderScans.containsKey(spiderScanId)) {
     		// Error... no spider scan with that ID
-    		logger.info("ZAP Scan status: " + scanId + " - NULL");
+    		sendError(response, HttpStatus.INTERNAL_SERVER_ERROR, "No ZAP scan with ID: " + scanId);
     		return new ScanStatus();
     	}
     	
@@ -482,13 +447,13 @@ public class ZapController implements ToolController {
     		restTemplate.getForObject(getServiceUrl() + "ascan/action/resume/?scanId=" + activeScanId, Object.class);
     	}
 		
-		return getScanStatus(scanId);
+		return getScanStatus(scanId, response);
     }
     	
     @Override
     @RequestMapping(value = "/scans/{scanId}/report", method = RequestMethod.GET,
     		produces = MediaType.APPLICATION_JSON_VALUE)
-    public ScanReport getScanReport(@PathVariable (required = true) String scanId) {
+    public ScanReport getScanReport(@PathVariable (required = true) String scanId, HttpServletResponse response) {
     	ScanReport scanReport = new ScanReport();
 
     	Long spiderScanId = Long.valueOf(scanId);
@@ -496,13 +461,13 @@ public class ZapController implements ToolController {
     	// Public Scan ID is Spider Scan ID
     	if (!spiderScans.containsKey(spiderScanId)) {
     		// Error... no spider scan with that ID
-    		logger.info("ZAP Scan status: " + scanId + " - NULL");
-    		return scanReport;
+    		sendError(response, HttpStatus.INTERNAL_SERVER_ERROR, "No ZAP scan with ID: " + scanId);
+    		return new ScanReport();
     	}
     	
     	Long activeScanId = spiderScans.get(spiderScanId); 
 
-    	scanReport.setStatus(getScanStatus(scanId));
+    	scanReport.setStatus(getScanStatus(scanId, response));
 
     	// Spider not finished yet, no alerts
     	if (activeScanId == NOT_STARTED_ACTIVE_SCAN_ID) {

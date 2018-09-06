@@ -21,7 +21,8 @@ COPY --from=zap /zap /zap
 COPY --from=arachni /arachni /arachni
 
 # Copy source code into image
-COPY . /code/
+COPY src /code/src/
+COPY pom.xml /code/
 
 # Maven dependency download, to speed up container execution
 WORKDIR /code

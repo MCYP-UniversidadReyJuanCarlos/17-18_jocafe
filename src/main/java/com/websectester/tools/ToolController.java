@@ -14,13 +14,13 @@ public interface ToolController {
 
     ScanResponse startScan(@RequestBody ScanRequest scanRequest, HttpServletResponse response);
     
-    ScanStatus getScanStatus(@PathVariable (required = true) String scanId);
+    ScanStatus getScanStatus(@PathVariable (required = true) String scanId, HttpServletResponse response);
 
-    ScanStatus pauseScan(@PathVariable (required = true) String scanId);
+    ScanStatus pauseScan(@PathVariable (required = true) String scanId, HttpServletResponse response);
     
-    ScanStatus resumeScan(@PathVariable (required = true) String scanId);
+    ScanStatus resumeScan(@PathVariable (required = true) String scanId, HttpServletResponse response);
     
-    ScanReport getScanReport(@PathVariable (required = true) String scanId);
+    ScanReport getScanReport(@PathVariable (required = true) String scanId, HttpServletResponse response);
     
     boolean isToolAvailable();
 

@@ -82,6 +82,39 @@ public class W3afController implements ToolController {
     	return serviceHost + ":" + servicePort + "/" + serviceContext;
     }
     
+    private void sendError(HttpServletResponse response, HttpStatus status, String message) {
+    	logger.error(message);
+    	try {
+			response.sendError(status.value(), message);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    }
+    
+    private boolean authParamsValid(ScanAuth scanAuth) {
+		if ((scanAuth.getAuthUrl() == null) ||
+			(scanAuth.getUsernameField() == null) ||	
+			(scanAuth.getPasswordField() == null) ||	
+			(scanAuth.getUsername() == null) ||	
+			(scanAuth.getPassword() == null) ||	
+			(scanAuth.getCheckLoggedInUrl() == null) ||	
+			(scanAuth.getCheckLoggedInString() == null)) {	
+			return false;
+		}
+		return true;
+    }
+
+    private String getFile(String fileName) throws IOException {
+    	InputStream inputStream = getClass().getResourceAsStream(fileName);
+        BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+        StringBuilder stringBuilder = new StringBuilder();
+        String inputStr;
+        while ((inputStr = br.readLine()) != null) {
+            stringBuilder.append(inputStr).append("\n");
+        }
+        return stringBuilder.toString();
+    }
+    
     @Override
     @RequestMapping(value = "/scans", method = RequestMethod.POST,
     		consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -89,12 +122,8 @@ public class W3afController implements ToolController {
     	logger.info("W3af Scan: " + scanRequest.getUrl());
     	
     	if ((scanRequest.getUrl() == null) || scanRequest.getUrl().isEmpty()) {
-			try {
-				response.sendError(HttpStatus.BAD_REQUEST.value(), "Missing required parameter: url");
-				return new ScanResponse();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			sendError(response, HttpStatus.BAD_REQUEST, "Missing required parameter: url");
+			return new ScanResponse();
     	}
     	
     	// The current W3af REST API implementation does not allow users to run more than one concurrent scan.
@@ -112,7 +141,16 @@ public class W3afController implements ToolController {
     	
     	// Load scan profile from resource file
     	String profile = W3AF_PROFILE_FULL_AUDIT;
-    	w3afRequest.setScanProfile(getFile(W3AF_PROFILE_DIR + profile));
+    	try {
+			w3afRequest.setScanProfile(getFile(W3AF_PROFILE_DIR + profile));
+		} catch (IOException e) {
+			e.printStackTrace();
+			sendError(response, HttpStatus.INTERNAL_SERVER_ERROR,
+					"Error loading profile '" + profile + "' from directory '" + W3AF_PROFILE_DIR + "'");
+			return new ScanResponse();
+		}
+
+    	logger.info("W3af Scan Profile: " + profile);
 
     	// Authentication
     	if (scanRequest.getAuth() != null) {
@@ -130,19 +168,13 @@ public class W3afController implements ToolController {
 				w3afRequest.setScanProfile(w3afRequest.getScanProfile() + authProfile);
     		}
     		else {
-    			try {
-					response.sendError(HttpStatus.BAD_REQUEST.value(), "Missing required authentication parameters "
-							+ "(authUrl, usernameField, passwordField, username, password,"
-							+ " checkLoggedInUrl, checkLoggedInString)");
-					return new ScanResponse();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				sendError(response, HttpStatus.BAD_REQUEST, "Missing required authentication parameters "
+						+ "(authUrl, usernameField, passwordField, username, password,"
+						+ " checkLoggedInUrl, checkLoggedInString)");
+				return new ScanResponse();
     		}
     	}
     	
-    	logger.info("W3af Scan Profile: " + profile);
-
     	HttpEntity<W3afScanRequest> request = new HttpEntity<>(w3afRequest);
     	W3afScan w3afScan = restTemplate.postForObject(getServiceUrl(), request, W3afScan.class);
     	
@@ -154,43 +186,9 @@ public class W3afController implements ToolController {
     	return scanResponse;
     }
     
-    private boolean authParamsValid(ScanAuth scanAuth) {
-		if ((scanAuth.getAuthUrl() == null) ||
-			(scanAuth.getUsernameField() == null) ||	
-			(scanAuth.getPasswordField() == null) ||	
-			(scanAuth.getUsername() == null) ||	
-			(scanAuth.getPassword() == null) ||	
-			(scanAuth.getCheckLoggedInUrl() == null) ||	
-			(scanAuth.getCheckLoggedInString() == null)) {	
-			return false;
-		}
-		return true;
-    }
-
-    private String getFile(String fileName) {
-    	InputStream inputStream = getClass().getResourceAsStream(fileName);
-        BufferedReader br;
-		try {
-			br = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-	        StringBuilder stringBuilder = new StringBuilder();
-	        String inputStr;
-	        while ((inputStr = br.readLine()) != null) {
-	            stringBuilder.append(inputStr).append("\n");
-	        }
-	        return stringBuilder.toString();
-		} catch (UnsupportedEncodingException e1) {
-			e1.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-    	// TODO Improve exception processing 
-		logger.info("ERROR - File not found: " + fileName);
-		return "";
-    }
-    
     @Override
     @RequestMapping(value = "/scans/{scanId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ScanStatus getScanStatus(@PathVariable (required = true) String scanId) {
+    public ScanStatus getScanStatus(@PathVariable (required = true) String scanId, HttpServletResponse response) {
     	
     	W3afScanStatus w3afStatus = restTemplate.getForObject(getServiceUrl() + scanId + "/status",
     			W3afScanStatus.class);
@@ -209,31 +207,30 @@ public class W3afController implements ToolController {
     @Override
     @RequestMapping(value = "/scans/{scanId}/pause", method = RequestMethod.PUT,
     		produces = MediaType.APPLICATION_JSON_VALUE)
-    public ScanStatus pauseScan(@PathVariable (required = true) String scanId) {
+    public ScanStatus pauseScan(@PathVariable (required = true) String scanId, HttpServletResponse response) {
     	
     	// Pausing in W3af doesn't work
 //		restTemplate.put("http://localhost:5000/scans/" + scanId + "/pause", scanId);
 		
-		return getScanStatus(scanId);
+		return getScanStatus(scanId, response);
     }
     	
     @Override
     @RequestMapping(value = "/scans/{scanId}/resume", method = RequestMethod.PUT,
     		produces = MediaType.APPLICATION_JSON_VALUE)
-    public ScanStatus resumeScan(@PathVariable (required = true) String scanId) {
+    public ScanStatus resumeScan(@PathVariable (required = true) String scanId, HttpServletResponse response) {
     	
     	// Pausing in W3af doesn't work
-//		restTemplate.put("http://localhost:5000/scans/" + scanId + "/resume", scanId);
 		
-		return getScanStatus(scanId);
+		return getScanStatus(scanId, response);
     }
     	
     @Override
     @RequestMapping(value = "/scans/{scanId}/report", method = RequestMethod.GET,
     		produces = MediaType.APPLICATION_JSON_VALUE)
-    public ScanReport getScanReport(@PathVariable (required = true) String scanId) {
+    public ScanReport getScanReport(@PathVariable (required = true) String scanId, HttpServletResponse response) {
     	ScanReport scanReport = new ScanReport();
-    	scanReport.setStatus(getScanStatus(scanId));
+    	scanReport.setStatus(getScanStatus(scanId, response));
     	
     	W3afScanAlertList alertList = restTemplate.getForObject(getServiceUrl() + scanId + "/kb",
     			W3afScanAlertList.class);

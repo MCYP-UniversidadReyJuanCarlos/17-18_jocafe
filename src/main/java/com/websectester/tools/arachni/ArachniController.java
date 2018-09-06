@@ -64,6 +64,27 @@ public class ArachniController implements ToolController {
     	return serviceHost + ":" + servicePort + "/" + serviceContext;
     }
     
+    private void sendError(HttpServletResponse response, HttpStatus status, String message) {
+    	logger.error(message);
+    	try {
+			response.sendError(status.value(), message);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    }
+    
+    private boolean authParamsValid(ScanAuth scanAuth) {
+		if ((scanAuth.getAuthUrl() == null) ||
+			(scanAuth.getUsernameField() == null) ||	
+			(scanAuth.getPasswordField() == null) ||	
+			(scanAuth.getUsername() == null) ||	
+			(scanAuth.getPassword() == null) ||	
+			(scanAuth.getCheckLoggedInString() == null)) {	
+			return false;
+		}
+		return true;
+    }
+    
     @Override
     @RequestMapping(value = "/scans", method = RequestMethod.POST,
     		consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -71,12 +92,8 @@ public class ArachniController implements ToolController {
     	logger.info("Arachni Scan: " + scanRequest.getUrl());
 
     	if ((scanRequest.getUrl() == null) || scanRequest.getUrl().isEmpty()) {
-			try {
-				response.sendError(HttpStatus.BAD_REQUEST.value(), "Missing required parameter: url");
-				return new ScanResponse();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			sendError(response, HttpStatus.BAD_REQUEST, "Missing required parameter: url");
+			return new ScanResponse();
     	}
     	
     	ArachniScanRequest arachniRequest = new ArachniScanRequest();
@@ -96,13 +113,9 @@ public class ArachniController implements ToolController {
     			arachniRequest.setAuthCheckLoggedInString(scanRequest.getAuth().getCheckLoggedInString());
     		}
     		else {
-    			try {
-					response.sendError(HttpStatus.BAD_REQUEST.value(), "Missing required authentication parameters "
-							+ "(authUrl, usernameField, passwordField, username, password, checkLoggedInString)");
-					return new ScanResponse();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				sendError(response, HttpStatus.BAD_REQUEST, "Missing required authentication parameters "
+						+ "(authUrl, usernameField, passwordField, username, password, checkLoggedInString)");
+				return new ScanResponse();
     		}
     	}
     	
@@ -117,21 +130,9 @@ public class ArachniController implements ToolController {
     	return scanResponse;
     }
     
-    private boolean authParamsValid(ScanAuth scanAuth) {
-		if ((scanAuth.getAuthUrl() == null) ||
-			(scanAuth.getUsernameField() == null) ||	
-			(scanAuth.getPasswordField() == null) ||	
-			(scanAuth.getUsername() == null) ||	
-			(scanAuth.getPassword() == null) ||	
-			(scanAuth.getCheckLoggedInString() == null)) {	
-			return false;
-		}
-		return true;
-    }
-    
     @Override
     @RequestMapping(value = "/scans/{scanId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ScanStatus getScanStatus(@PathVariable (required = true) String scanId) {
+    public ScanStatus getScanStatus(@PathVariable (required = true) String scanId, HttpServletResponse response) {
     	
     	ArachniScanStatus arachniStatus = restTemplate.getForObject(getServiceUrl() + "/" + scanId + "/summary",
     			ArachniScanStatus.class);
@@ -143,36 +144,36 @@ public class ArachniController implements ToolController {
     		}
 			status.setProgress(arachniStatus.getProgress());
     	}
-
+    	
     	return status;    	
     }
     	
     @Override
     @RequestMapping(value = "/scans/{scanId}/pause", method = RequestMethod.PUT,
     		produces = MediaType.APPLICATION_JSON_VALUE)
-    public ScanStatus pauseScan(@PathVariable (required = true) String scanId) {
+    public ScanStatus pauseScan(@PathVariable (required = true) String scanId, HttpServletResponse response) {
     	
 		restTemplate.put(getServiceUrl() + "/" + scanId + "/pause", scanId);
 		
-		return getScanStatus(scanId);
+		return getScanStatus(scanId, response);
     }
     	
     @Override
     @RequestMapping(value = "/scans/{scanId}/resume", method = RequestMethod.PUT,
     		produces = MediaType.APPLICATION_JSON_VALUE)
-    public ScanStatus resumeScan(@PathVariable (required = true) String scanId) {
+    public ScanStatus resumeScan(@PathVariable (required = true) String scanId, HttpServletResponse response) {
     	
 		restTemplate.put(getServiceUrl() + "/" + scanId + "/resume", scanId);
 		
-		return getScanStatus(scanId);
+		return getScanStatus(scanId, response);
     }
     	
     @Override
     @RequestMapping(value = "/scans/{scanId}/report", method = RequestMethod.GET,
     		produces = MediaType.APPLICATION_JSON_VALUE)
-    public ScanReport getScanReport(@PathVariable (required = true) String scanId) {
+    public ScanReport getScanReport(@PathVariable (required = true) String scanId, HttpServletResponse response) {
     	ScanReport scanReport = new ScanReport();
-    	scanReport.setStatus(getScanStatus(scanId));
+    	scanReport.setStatus(getScanStatus(scanId, response));
     	
     	ArachniScanReport arachniReport = restTemplate.getForObject(getServiceUrl() + "/" + scanId + "/report",
     			ArachniScanReport.class);

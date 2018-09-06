@@ -47,6 +47,16 @@ http://w3af.org/
 
     sudo docker build . -f Dockerfile-test -t websectester-test
     sudo docker run websectester-test
+    
+If you want to see the logs from the analysis tools, set one or more of the following environment variables at the `docker run` command:
+
+    -e LOG_ARACHNI=true
+    -e LOG_W3AF=true
+    -e LOG_ZAP=true
+    
+For example, to enable logs from Arachni and W3af:
+
+    sudo docker run -e LOG_ARACHNI=true -e LOG_W3AF=true websectester-test
 
 ### Docker-compose
 
