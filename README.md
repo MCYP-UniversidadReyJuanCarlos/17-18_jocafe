@@ -2,16 +2,14 @@
 
 ## REST service for unification of web vulnerability analysis tools
 
-Project documentation (in Spanish)  
-https://docs.google.com/document/d/e/2PACX-1vQbjAfHrBmC5O-MsHuL0mBRb7ynxQaenWpycP2DA365IUb4PmB5aZuYFGhQEQXgFY1bfSC13-zTwJSg/pub
-
-
 ### Index
 
 1. [Project description](#project-description)
 2. [Features](#features)
-3. [How to run](#how-to-run)
-4. [Basic usage](#basic-usage)
+3. [Architecture](#arquitecture)
+4. [How to run](#how-to-run)
+5. [Basic usage](#basic-usage)
+6. [Development documentation](#development-documentation)
 
 
 ## Project description
@@ -34,7 +32,7 @@ http://www.arachni-scanner.com/
 + **W3af**: Web Application Attack and Audit Framework  
 http://w3af.org/
 
-# Architecture
+## Architecture
 
 ![Architecture](arch_diagram.png)
 
@@ -254,4 +252,8 @@ Report structure example:
            ...
         ]
     }
+
+## Development documentation
+Project documentation (in Spanish)  
+https://docs.google.com/document/d/e/2PACX-1vQbjAfHrBmC5O-MsHuL0mBRb7ynxQaenWpycP2DA365IUb4PmB5aZuYFGhQEQXgFY1bfSC13-zTwJSg/pub
 
