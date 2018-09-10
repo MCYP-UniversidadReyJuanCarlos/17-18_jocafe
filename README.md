@@ -6,7 +6,7 @@
 
 1. [Project description](#project-description)
 2. [Features](#features)
-3. [Architecture](#arquitecture)
+3. [Architecture](#architecture)
 4. [How to run](#how-to-run)
 5. [Basic usage](#basic-usage)
 6. [Development documentation](#development-documentation)
@@ -15,11 +15,15 @@
 ## Project description
 This project consists of a management system for web application security analysis tools.
 
-The service included integrates the management of the different tools and offers a common REST API to ease launching, controlling and getting the results of the security analysis of a web application, in a unified way and regardless of the selected tool.
+The system integrates the management of the different tools and offers a common REST API to ease launching, controlling and getting the results of the security analysis of a web application, in a unified way and regardless of the selected tool.
 
-The system is ready to be distributed in a Docker container image, with the aim of making easier its integration in a continuous integration system, and periodically performing security analysis on web applications within the software development cycle.
+WebSecTester is ready to be distributed in a Docker container image, with the aim of making easier its integration in a continuous integration system, and periodically performing security analysis on web applications within the software development cycle.
 
 ## Features
+
+WebSecTester provides a REST service to which requests can be sent to initiate and control vulnerability analysis tasks on target web applications, in a unified way and independently of the specific tool selected.
+
+Once the analysis is started, there are also requests to obtain the current status of the task, control its execution (pause, continue), and to obtain the result with the analysis report in a homogeneous way among the different tools.
 
 Currently, the web security analysis tools managed by WebSecTester are the following:
 
