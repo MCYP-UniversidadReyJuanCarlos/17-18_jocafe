@@ -41,7 +41,7 @@ http://w3af.org/
 ### Docker
 
     sudo docker build . -t websectester
-    sudo docker run websectester
+    sudo docker run -p 8080:8080 websectester
 
 ### Docker unit tests
 
