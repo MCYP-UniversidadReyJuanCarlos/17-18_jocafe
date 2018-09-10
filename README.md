@@ -17,13 +17,13 @@ https://docs.google.com/document/d/e/2PACX-1vQbjAfHrBmC5O-MsHuL0mBRb7ynxQaenWpyc
 ## Project description
 This project consists of a management system for web application security analysis tools.
 
-This system integrates the management of the different tools and offers a common REST API to ease launching, controlling and getting the results of the security analysis of a web application, in a unified way and regardless of the selected tool.
+The service included integrates the management of the different tools and offers a common REST API to ease launching, controlling and getting the results of the security analysis of a web application, in a unified way and regardless of the selected tool.
 
 The system is ready to be distributed in a Docker container image, with the aim of making easier its integration in a continuous integration system, and periodically performing security analysis on web applications within the software development cycle.
 
 ## Features
 
-Currently, the web security analysis tools managed by the system are the following:
+Currently, the web security analysis tools managed by WebSecTester are the following:
 
 + **OWASP ZAP**: Zed Attack Proxy  
 https://www.owasp.org/index.php/OWASP_Zed_Attack_Proxy_Project
@@ -45,7 +45,7 @@ http://w3af.org/
     sudo docker build . -t websectester
     sudo docker run -p 8080:8080 websectester
 
-The first command compiles the application and builds its Docker image, including the analysis tools. Te second command runs the container and starts the WebSecTester REST service listening at port TCP:8080 by default. If you want to start it in another port, just change the first number in the -p parameter.
+The first command compiles the application and builds its Docker image, including the analysis tools. The second command runs the container and starts the WebSecTester REST service listening at port 8080 by default. If you want to start it in another port, just change the first number in the -p parameter.
 
 ### Docker unit tests
 
@@ -68,7 +68,7 @@ In addition to the Docker image, a `docker-compose.yml` file is offered to start
 
     docker-compose up --build
 
-This command compiles the application and builds its Docker image, and then starts the containers of both application and analysis tools, leaving the system ready to use as a REST service listening at port TCP:8080. Of course, you must have docker and docker-compose tools installed on your computer.
+This command compiles the application and builds its Docker image, and then starts the containers of both application and analysis tools, leaving the system ready to use as a REST service listening at port 8080. Of course, you must have docker and docker-compose tools installed on your computer.
 
 ## Basic usage
 Once the application has started, you can start using it by sending it requests to perform security analysis to the target web application. In each request you must specify the tool (parameter `toolId`) you want to use. Note that the analysis task ID given by the new scan request corresponds only to the tool you used to start that task. The current tool identifiers are:
@@ -76,6 +76,38 @@ Once the application has started, you can start using it by sending it requests 
 + `zap`: OWASP ZAP
 + `arachni`: Arachni
 + `w3af`: W3af
+
+### List of integrated tools
+
+#### Request
+
+    GET /tools
+
+Headers:
+
+    Accept: application/json
+    
+#### Response
+
+List of integrated analysis tools, with their names, identifiers and current availability.
+
+    [
+        {
+            "name": "OWASP ZAP",
+            "identifier": "zap",
+            "available": true
+        },
+        {
+            "name": "Arachni",
+            "identifier": "arachni",
+            "available": true
+        },
+        {
+            "name": "W3af",
+            "identifier": "w3af",
+            "available": false
+        }
+    ]
 
 
 ### Perform a new scan
