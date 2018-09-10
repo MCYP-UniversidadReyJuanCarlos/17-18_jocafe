@@ -2,8 +2,6 @@
 
 ## REST service for unification of web vulnerability analysis tools
 
-(Work In Progress)
-
 Project documentation (in Spanish)  
 https://docs.google.com/document/d/e/2PACX-1vQbjAfHrBmC5O-MsHuL0mBRb7ynxQaenWpycP2DA365IUb4PmB5aZuYFGhQEQXgFY1bfSC13-zTwJSg/pub
 
@@ -36,12 +34,18 @@ http://www.arachni-scanner.com/
 + **W3af**: Web Application Attack and Audit Framework  
 http://w3af.org/
 
+# Architecture
+
+![Architecture](arch_diagram.png)
+
 ## How to run
 
 ### Docker
 
     sudo docker build . -t websectester
     sudo docker run -p 8080:8080 websectester
+
+The first command compiles the application and builds its Docker image, including the analysis tools. Te second command runs the container and starts the WebSecTester REST service listening at port TCP:8080 by default. If you want to start it in another port, just change the first number in the -p parameter.
 
 ### Docker unit tests
 
@@ -90,6 +94,35 @@ Body:
     {
         "url": "http://testhtml5.vulnweb.com"
     }
+
+If you want to send credentials to be authenticated in the application to make the tool analyze non-public sections, you must add a property in the body of the request that contains the following information:
+
++ Username.
++ Password.
++ Name of the HTML input of the user name in the login form.
++ Name of the HTML input of the password in the login form.
++ URL of the POST request that is sent when submitting the authentication form.
++ URL to verify that it has been authenticated, searching for a certain string.
++ String to look for in the body of the response of the authentication request, or in the previous URL, to know if the authentication has been successful.
++ String to be searched in the body of any response to find out if the tool has been disconnected (for example, by logout operation unintentionally during scanning).
+
+For example, to authenticate in an instance of the vulnerable WebGoat application that is running at the address http://192.168.1.200:8080/WebGoat, with the user 'webgoat' and password 'goatpass', the following object can be sent JSON in the request:
+
+    {
+        "url": "http://192.168.1.200:8080/WebGoat",
+        "auth": {
+            "username": "webgoat",
+            "password": "goatpass",
+            "usernameField": "username",
+            "passwordField": "password",
+            "authUrl": "http://192.168.1.200:8080/WebGoat/login",
+            "checkLoggedInUrl": "http://192.168.1.200:8080/WebGoat/start.mvc",
+            "checkLoggedInString": "Logout",
+            "checkLoggedOutString": "Register"
+        }
+    }
+
+
 
 #### Response
 
