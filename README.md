@@ -9,7 +9,8 @@
 3. [Architecture](#architecture)
 4. [How to run](#how-to-run)
 5. [Basic usage](#basic-usage)
-6. [Development documentation](#development-documentation)
+6. [How to build](#how-to-build)
+7. [Development documentation](#development-documentation)
 
 
 ## Project description
@@ -42,35 +43,12 @@ http://w3af.org/
 
 ## How to run
 
-### Docker
+You can use the docker container image ready to use from DockerHub. You must have docker installed on your system. Simply run the following command and automatically WebSecTester will start after a few moments:
 
-    sudo docker build . -t websectester
-    sudo docker run -p 8080:8080 websectester
+    sudo docker run -p 8080:8080 jcascan/websectester
 
-The first command compiles the application and builds its Docker image, including the analysis tools. The second command runs the container and starts the WebSecTester REST service listening at port 8080 by default. If you want to start it in another port, just change the first number in the -p parameter.
+This command downloads the container image, runs the container and starts the WebSecTester REST service listening at port 8080 by default. If you want to start it in another port, just change the first number in the -p parameter.
 
-### Docker unit tests
-
-    sudo docker build . -f Dockerfile-test -t websectester-test
-    sudo docker run websectester-test
-    
-If you want to see the logs from the analysis tools, set one or more of the following environment variables at the `docker run` command:
-
-    -e LOG_ARACHNI=true
-    -e LOG_W3AF=true
-    -e LOG_ZAP=true
-    
-For example, to enable logs from Arachni and W3af:
-
-    sudo docker run -e LOG_ARACHNI=true -e LOG_W3AF=true websectester-test
-
-### Docker-compose
-
-In addition to the Docker image, a `docker-compose.yml` file is offered to start the analysis tools and the management application by running one simple command at the project's root folder (maybe you must enter this command as root with `sudo` at the beginning):
-
-    docker-compose up --build
-
-This command compiles the application and builds its Docker image, and then starts the containers of both application and analysis tools, leaving the system ready to use as a REST service listening at port 8080. Of course, you must have docker and docker-compose tools installed on your computer.
 
 ## Basic usage
 Once the application has started, you can start using it by sending it requests to perform security analysis to the target web application. In each request you must specify the tool (parameter `toolId`) you want to use. Note that the analysis task ID given by the new scan request corresponds only to the tool you used to start that task. The current tool identifiers are:
@@ -256,6 +234,38 @@ Report structure example:
            ...
         ]
     }
+
+## How to build
+
+### Docker
+
+    sudo docker build . -t websectester
+    sudo docker run -p 8080:8080 websectester
+
+The first command compiles the application and builds its Docker image, including the analysis tools. The second command runs the container and starts the WebSecTester REST service listening at port 8080 by default. If you want to start it in another port, just change the first number in the -p parameter.
+
+### Docker unit tests
+
+    sudo docker build . -f Dockerfile-test -t websectester-test
+    sudo docker run websectester-test
+    
+If you want to see the logs from the analysis tools, set one or more of the following environment variables at the `docker run` command:
+
+    -e LOG_ARACHNI=true
+    -e LOG_W3AF=true
+    -e LOG_ZAP=true
+    
+For example, to enable logs from Arachni and W3af:
+
+    sudo docker run -e LOG_ARACHNI=true -e LOG_W3AF=true websectester-test
+
+### Docker-compose
+
+In addition to the Docker image, a `docker-compose.yml` file is offered to start the analysis tools and the management application by running one simple command at the project's root folder (maybe you must enter this command as root with `sudo` at the beginning):
+
+    docker-compose up --build
+
+This command compiles the application and builds its Docker image, and then starts the containers of both application and analysis tools, leaving the system ready to use as a REST service listening at port 8080. Of course, you must have docker and docker-compose tools installed on your computer.
 
 ## Development documentation
 Project documentation (in Spanish)  
