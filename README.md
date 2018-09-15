@@ -43,7 +43,7 @@ http://w3af.org/
 
 ## How to run
 
-You can use the docker container image ready to use from DockerHub. You must have docker installed on your system. Simply run the following command and automatically WebSecTester will start after a few moments:
+You can use the ready-to-use docker container image from DockerHub. You must have docker installed on your system. Simply run the following command and automatically WebSecTester will start after a few moments:
 
     sudo docker run -p 8080:8080 jcascan/websectester
 
@@ -118,7 +118,7 @@ If you want to send credentials to be authenticated in the application to make t
 + String to look for in the body of the response of the authentication request, or in the previous URL, to know if the authentication has been successful.
 + String to be searched in the body of any response to find out if the tool has been disconnected (for example, by logout operation unintentionally during scanning).
 
-For example, to authenticate in an instance of the vulnerable WebGoat application that is running at the address http://192.168.1.200:8080/WebGoat, with the user 'webgoat' and password 'goatpass', the following object can be sent JSON in the request:
+For example, to authenticate in an instance of the vulnerable WebGoat application that is running at the address http://192.168.1.200:8080/WebGoat, with the user 'webgoat' and password 'goatpass', the following JSON object can be sent in the request:
 
     {
         "url": "http://192.168.1.200:8080/WebGoat",
@@ -141,7 +141,7 @@ For example, to authenticate in an instance of the vulnerable WebGoat applicatio
 Identifier of the analysis assigned by the selected tool.
 
     {
-        "id": "<scanId>"
+        "scanId": "0"
     }
 
 ### Monitor scan status
@@ -160,7 +160,7 @@ State of the analysis task. Depending on the selected tool, the progress of the 
 
     {
         "status": "[RUNNING | PAUSED | DONE …]",
-        "progress": “45”
+        "progress": "45"
     }
 
 ### Manage scan tasks
@@ -200,7 +200,7 @@ Report with the results of the analysis. It consists of a JSON object with the i
 Report structure example:
 
     {
-        "progress": “100”,
+        "progress": "100",
         "status": "DONE",
         "alerts": [
             {
